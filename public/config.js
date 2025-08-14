@@ -22,7 +22,7 @@ window.config = {
   kubeflowURL: '/kubeflowproxy/',
   kubeflowBaseUrl: 'portal.aiserving.dev.aip.domain.net',
 
-  servingExtBaseUrl: '//portal.aiserving.dev.aip.domain.net/serving',
+  servingExtBaseUrl: '/serving',
 
   applicationName: 'AIP Serve',
   applicationSubName: '',
