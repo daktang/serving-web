@@ -6,36 +6,40 @@ module.exports = {
     ...base.devServer,
     host: 'localhost',
     port: 3000,
-    server: 'https',
 
     proxy: {
       '/api': {
         target: 'https://portal.aiserving.dev.aip.domain.net',
         changeOrigin: true,
         secure: false,
+        cookieDomainRewrite: 'localhost',
       },
 
       '/ext-dit': {
         target: 'https://portal.aiserving.dev.aip.domain.net',
         changeOrigin: true,
         secure: false,
+        cookieDomainRewrite: 'localhost',
       },
 
       '/authservice': {
         target: 'https://portal.aiserving.dev.aip.domain.net',
         changeOrigin: true,
         secure: false,
+        cookieDomainRewrite: 'localhost',
       },
 
       '/models': {
         target: 'https://portal.aiserving.dev.aip.domain.net',
         changeOrigin: true,
         secure: false,
+        cookieDomainRewrite: 'localhost',
       },
       '/serving': {
         target: 'https://portal.aiserving.dev.aip.domain.net',
         changeOrigin: true,
         secure: false,
+        cookieDomainRewrite: 'localhost',
       },
 
       '/kubeflowproxy': {
@@ -43,6 +47,7 @@ module.exports = {
         changeOrigin: true,
         secure: false,
         pathRewrite: { '^/kubeflowproxy': '/' },
+        cookieDomainRewrite: 'localhost',
       },
     },
 
