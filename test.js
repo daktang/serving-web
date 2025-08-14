@@ -21,7 +21,7 @@ Thu, 14 Aug 2025 08:37:05 GMT
 server
 istio-envoy
 set-cookie
-authservice_session=MTc1NTE1NzM0NXxOd3dBTkVOT1QwZEdOVWhZVGtwUVZVOVBSVVpOUlZGWVNrNVFXRFZGVGxSWFVrbGFOMU5VV2xGUlIwbFBORlZJVUVsRFYxcFpXbEU9fArVCNH335IDuJ3kQW1PSMNOBBnc2yH1M2OzRnBmuTzM; Domain=.aiserving.dev.aip.samsungds.net; Expires=Fri, 15 Aug 2025 08:37:05 GMT; HttpOnly; Path=/
+authservice_session=MTc1NTE1NzM0NXxOd3dBTkVOT1QwZEdOVWhZVGtwUVZVOVBSVVpOUlZGWVNrNVFXRFZGVGxSWFVrbGFOMU5VV2xGUlIwbFBORlZJVUVsRFYxcFpXbEU9fArVCNH335IDuJ3kQW1PSMNOBBnc2yH1M2OzRnBmuTzM; Domain=.aiserving.dev.aip.domain.net; Expires=Fri, 15 Aug 2025 08:37:05 GMT; HttpOnly; Path=/
 vary
 Origin, Accept-Encoding
 x-envoy-upstream-service-time
