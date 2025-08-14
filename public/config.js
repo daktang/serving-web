@@ -5,11 +5,11 @@ window.config = {
   metadata: { name: 'FrontendConfigmap' },
 
   apiGateway: {
-    base_url_V2: '/api/v2/',
-    dit_ext_base_url_V1: '/ext-dit/api/v1/',
-    modelWebBackendUrl: '/models'
+    base_url_V2: '//portal.aiserving.dev.aip.domain.net/api/v2/',
+    dit_ext_base_url_V1: '//portal.aiserving.dev.aip.domain.net/ext-dit/api/v1/',
+    modelWebBackendUrl: '//portal.aiserving.dev.aip.domain.net/models'
   },
-  coreApiUrl: '/api/',
+  coreApiUrl: '//portal.aiserving.dev.aip.domain.net/api/',
 
   kubeflowLogout:
     'https://auth.dev.aip.domain.net/auth/realms/aiplatform/protocol/openid-connect/logout?client_id=serve&post_logout_redirect_uri=http://localhost:3000/after-logout/logout',
@@ -20,9 +20,9 @@ window.config = {
   defaultAffinityConfig: 'servingPool',
 
   kubeflowURL: '/kubeflowproxy/',
-  kubeflowBaseUrl: 'localhost:3000/kubeflowproxy',
+  kubeflowBaseUrl: 'portal.aiserving.dev.aip.domain.net',
 
-  servingExtBaseUrl: '/serving',
+  servingExtBaseUrl: '//portal.aiserving.dev.aip.domain.net/serving',
 
   applicationName: 'AIP Serve',
   applicationSubName: '',
