@@ -7,6 +7,10 @@ module.exports = {
     host: 'localhost',
     port: 3000,
 
+    client: {
+      logging: 'verbose',
+    },
+
     proxy: {
       '/api': {
         target: 'https://portal.aiserving.dev.aip.domain.net',
