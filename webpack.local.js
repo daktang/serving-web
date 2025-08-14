@@ -130,3 +130,4 @@ module.exports = {
   plugins: [
     ...base.plugins,
   ],
+}

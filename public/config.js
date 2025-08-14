@@ -31,3 +31,4 @@ window.config = {
 
   buildId: 'dev-local',
   commitHash: 'local'
+}
