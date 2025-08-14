@@ -40,3 +40,9 @@ upgrade-insecure-requests
 1
 user-agent
 Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/138.0.0.0 Safari/537.36
+
+npx webpack serve --config webpack.local.js -- stats verbose --log-level verbose
+Failed to load ./.env.
+[webpack-cli] Invalid configuration object. Webpack has been initialized using a configuration object that does not match the API schema.
+ - configuration.entry should not contain the item 'verbose' twice.
+   -> All modules are loaded upon startup. The last one is exported.
