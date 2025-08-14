@@ -13,6 +13,9 @@ module.exports = {
         changeOrigin: true,
         secure: false,
         cookieDomainRewrite: 'localhost',
+        pathRewrite: {
+          '^/api/v2/api/(.*)': '/api/v2/$1'
+        },
       },
 
       '/ext-dit': {
