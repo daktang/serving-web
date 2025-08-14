@@ -19,6 +19,7 @@ module.exports = {
           req.setHeader('X-Forwarded-Proto', 'https');
           req.setHeader('X-Forwarded-Host', 'localhost:3000');
           req.setHeader('X-Forwarded-Port', '3000');
+          req.setHeader('Origin', 'https://portal.aiserving.dev.aip.domain.net');
         },
         onProxyRes(res) {
           const loc = res.headers['location'];
@@ -40,6 +41,7 @@ module.exports = {
           req.setHeader('X-Forwarded-Proto', 'https');
           req.setHeader('X-Forwarded-Host', 'localhost:3000');
           req.setHeader('X-Forwarded-Port', '3000');
+          req.setHeader('Origin', 'https://portal.aiserving.dev.aip.domain.net');
         },
         onProxyRes(res) {
           const loc = res.headers['location'];
@@ -62,6 +64,7 @@ module.exports = {
           req.setHeader('X-Forwarded-Proto', 'https');
           req.setHeader('X-Forwarded-Host', 'localhost:3000');
           req.setHeader('X-Forwarded-Port', '3000');
+          req.setHeader('Origin', 'https://portal.aiserving.dev.aip.domain.net');
         },
 
         onProxyRes(res) {
