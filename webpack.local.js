@@ -9,7 +9,6 @@ module.exports = {
     server: 'https',
 
     proxy: {
-      // ===== API (v1/v2 포함) → 개발 포털 =====
       '/api': {
         target: 'https://portal.aiserving.dev.aip.domain.net',
         changeOrigin: true,
@@ -70,7 +69,6 @@ module.exports = {
           if (loc) {
             try {
               const u = new URL(loc);
-              // IdP 단계: redirect_uri를 로컬 콜백으로 강제
               if (u.hostname === 'auth.dev.aip.domain.net') {
                 const ru = u.searchParams.get('redirect_uri');
                 if (ru) {
@@ -83,13 +81,11 @@ module.exports = {
                 }
               }
             } catch {}
-            // 포털 절대 경로 잔여분을 로컬로 고정
             res.headers['location'] = res.headers['location']
               .replace('https://portal.aiserving.dev.aip.domain.net/authservice', 'https://localhost:3000/authservice')
               .replace('http://portal.aiserving.dev.aip.domain.net/authservice', 'https://localhost:3000/authservice');
           }
 
-          // Set-Cookie: domain/Path 보정 (배열/단일 모두 처리)
           const sc = res.headers['set-cookie'];
           if (sc) {
             const arr = Array.isArray(sc) ? sc : [sc];
@@ -102,7 +98,6 @@ module.exports = {
         },
       },
 
-      // ===== 모델/서빙 → 개발 포털 =====
       '/models': {
         target: 'https://portal.aiserving.dev.aip.domain.net',
         changeOrigin: true,
@@ -118,7 +113,6 @@ module.exports = {
         headers: { Host: 'portal.aiserving.dev.aip.domain.net' },
       },
 
-      // ===== Kubeflow → 개발 쿠브플로우 =====
       '/kubeflowproxy': {
         target: 'https://kubeflow.aiserving.dev.aip.domain.net',
         changeOrigin: true,
@@ -133,8 +127,6 @@ module.exports = {
     },
   },
 
-  // Dotenv 등은 불요 — base.plugins만 사용
   plugins: [
     ...base.plugins,
   ],
-};

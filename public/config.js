@@ -1,4 +1,3 @@
-// public/config.js
 window.config = {
   namespace: 'aiserving-system',
   rootContext: '',
@@ -6,13 +5,12 @@ window.config = {
   metadata: { name: 'FrontendConfigmap' },
 
   apiGateway: {
-    base_url_V2: '/api/v2/',                 // -> proxy -> https://portal.aiserving.dev.aip.domain.net/api/v2/
-    dit_ext_base_url_V1: '/ext-dit/api/v1/', // -> proxy -> https://portal.aiserving.dev.aip.domain.net/ext-dit/api/v1/
-    modelWebBackendUrl: '/models'            // -> proxy -> https://portal.aiserving.dev.aip.domain.net/models
+    base_url_V2: '/api/v2/',
+    dit_ext_base_url_V1: '/ext-dit/api/v1/',
+    modelWebBackendUrl: '/models'
   },
-  coreApiUrl: '/api/',                        // -> proxy -> https://portal.aiserving.dev.aip.domain.net/api/
+  coreApiUrl: '/api/',
 
-  // 로그아웃 후 로컬로 복귀 (URL-encode된 redirect)
   kubeflowLogout:
     'https://auth.dev.aip.domain.net/auth/realms/aiplatform/protocol/openid-connect/logout?client_id=serve&post_logout_redirect_uri=http://localhost:3000/after-logout/logout',
 
@@ -24,7 +22,7 @@ window.config = {
   kubeflowURL: '/kubeflowproxy/',
   kubeflowBaseUrl: 'localhost:3000/kubeflowproxy',
 
-  servingExtBaseUrl: '/serving',              // -> proxy -> https://portal.../serving
+  servingExtBaseUrl: '/serving',
 
   applicationName: 'AIP Serve',
   applicationSubName: '',
@@ -33,4 +31,3 @@ window.config = {
 
   buildId: 'dev-local',
   commitHash: 'local'
-};
