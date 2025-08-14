@@ -1,1 +1,22 @@
 #
+
+.
+|-- ai-portal-frontend-v2.0-master
+|   |-- Dockerfile
+|   |-- assetsTransformer.js
+|   |-- config.js
+|   |-- fonts
+|   |-- nginx.conf
+|   |-- package.json
+|   |-- postcss.config.js
+|   |-- public
+|   |-- sonar-project.properties
+|   |-- src
+|   |-- webpack.config.js
+|   |-- webpack.dev.js
+|   `-- webpack.prod.js
+`-- proxyServer
+    |-- index.js
+    `-- package.json
+ 
+7 directories, 14 files
