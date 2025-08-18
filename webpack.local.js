@@ -1,12 +1,11 @@
 // webpack.local.js
 const base = require('./webpack.dev.js');
 
-const PORTAL = 'portal.aiserving.dev.aip.domain.net';
-const AUTH   = 'auth.dev.aip.domain.net';
+const PORTAL   = 'portal.aiserving.dev.aip.domain.net';
+const AUTH     = 'auth.dev.aip.domain.net';
 const KUBEFLOW = 'kubeflow.aiserving.dev.aip.domain.net';
-const LOCAL  = 'localhost:3000';
+const LOCAL    = 'localhost:3000';
 
-// helpers
 function onProxyReq(req) {
   req.setHeader('X-Forwarded-Proto', 'http');
   req.setHeader('X-Forwarded-Host', LOCAL);
@@ -45,12 +44,33 @@ function rewriteSetCookie(res) {
      .replace(/;\s*SameSite=None/gi, '; SameSite=Lax')
   );
 }
-const rewriteCore = p => p.replace(/^\/coreproxy\/api\/+/, '/api/').replace(/^\/coreproxy\/+/, '/api/');
-const rewriteExt  = p => (
-  /^\/extproxy\/api\/v\d+\//.test(p) ? p.replace(/^\/extproxy\/api\/v(\d+)\//, '/ext-dit/api/v$1/') :
-  /^\/extproxy\/v\d+\//.test(p)     ? p.replace(/^\/extproxy\/v(\d+)\//,     '/ext-dit/api/v$1/') :
-                                      p.replace(/^\/extproxy\/+/,             '/ext-dit/api/')
-);
+
+// ✅ 핵심: /coreproxy 경로 정규화
+const rewriteCore = (p) => {
+  // 중복 coreproxy 접두사 제거
+  p = p.replace(/\/coreproxy(\/+coreproxy)+/g, '/coreproxy');
+  // 마지막 버전(vN)을 찾아서 /api/vN/ 이하만 보존
+  const versions = p.match(/\/v\d+\//g);
+  if (versions && versions.length) {
+    const lastV = versions[versions.length - 1].slice(1, -1); // 'v3'
+    const tail = p.split(new RegExp(`/${lastV}/`)).pop();      // 'authenticate' 등
+    return `/api/${lastV}/${tail}`;
+  }
+  // 버전 없으면 /api/로 치환
+  return p.replace(/^\/coreproxy\/+/, '/api/');
+};
+
+// ✅ /extproxy도 동일 전략(마지막 vN만 유지)
+const rewriteExt = (p) => {
+  p = p.replace(/\/extproxy(\/+extproxy)+/g, '/extproxy');
+  const versions = p.match(/\/v\d+\//g);
+  if (versions && versions.length) {
+    const lastV = versions[versions.length - 1].slice(1, -1);
+    const tail = p.split(new RegExp(`/${lastV}/`)).pop();
+    return `/ext-dit/api/${lastV}/${tail}`;
+  }
+  return p.replace(/^\/extproxy\/+/, '/ext-dit/api/');
+};
 
 const commonPortalProxy = {
   target: `https://${PORTAL}`,
@@ -69,34 +89,28 @@ module.exports = {
     host: 'localhost',
     port: 3000, // HTTP
     client: { logging: 'verbose', webSocketURL: { protocol: 'ws', hostname: 'localhost', port: '3000', pathname: '/ws' } },
-
     proxy: {
-      // B 스타일 프리픽스
+      // 🔧 여기만 보면 됨
       '/coreproxy': { ...commonPortalProxy, pathRewrite: rewriteCore },
       '/extproxy':  { ...commonPortalProxy, pathRewrite: rewriteExt },
 
-      // 모델/서빙
       '/models':  { ...commonPortalProxy },
       '/serving': { ...commonPortalProxy },
 
-      // OIDC
       '/authproxy': {
         ...commonPortalProxy,
         pathRewrite: { '^/authproxy': '/authservice' },
         cookiePathRewrite: { '/authservice': '/', '/': '/' },
         onProxyRes(res) { rewriteRedirectUriToLocal(res); rewriteLocationToLocal(res); rewriteSetCookie(res); },
       },
-      // 혹시 /authservice 직접 호출도 커버
       '/authservice': {
         ...commonPortalProxy,
         cookiePathRewrite: { '/authservice': '/', '/': '/' },
         onProxyRes(res) { rewriteRedirectUriToLocal(res); rewriteLocationToLocal(res); rewriteSetCookie(res); },
       },
 
-      // socket.io
-      '/socket.io': { ...commonPortalProxy, ws: true },
+      '/socket.io':  { ...commonPortalProxy, ws: true },
 
-      // Kubeflow
       '/kubeflowproxy': {
         target: `https://${KUBEFLOW}`,
         changeOrigin: true,
@@ -106,12 +120,10 @@ module.exports = {
         onProxyReq,
       },
     },
-
     setupMiddlewares: (m, devServer) => {
       devServer.app.get('/', (_req, res) => res.redirect(302, '/dashboard'));
       return m;
     },
   },
-
   plugins: [ ...base.plugins ],
 };
