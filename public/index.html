@@ -6,37 +6,43 @@
   <meta name="theme-color" content="#000000" />
   <link rel="icon" type="image/png" id="fevicon" href="images/icons/favicon.png" sizes="32x32">
 
-  <script type="text/javascript" src="config.js"></script>
-  <script type="text/javascript" src="//code.jquery.com/jquery-1.4.2.min.js"></script>
-  <script type="text/javascript" src="//cdn.socket.io/4.4.1/socket.io.min.js"></script>
+  <script src="config.js"></script>
+  <script src="//code.jquery.com/jquery-1.4.2.min.js"></script>
+  <script src="//cdn.socket.io/4.4.1/socket.io.min.js"></script>
 
-  <!-- dev-only: model-server 화면의 detail 절대 URL 한 건만 /api로 치환 -->
-  <script type="text/javascript">
+  <!-- dev: 포털 절대 URL 중 /api, /ext-dit/api만 로컬 프록시로 돌림 -->
+  <script>
   (function () {
-    var HOSTS = [
-      'https://portal.aiserving.dev.aip.domain.net',
-      'http://portal.aiserving.dev.aip.domain.net'
-    ];
-    var PATH = '/api/v2/menu/side-menu/detail';
+    var HOST = 'portal.aiserving.dev.aip.domain.net';
+    var PREFIXES = ['/api/', '/ext-dit/api/'];
+
     function toLocal(u) {
-      if (typeof u !== 'string') return u;
-      for (var i = 0; i < HOSTS.length; i++) {
-        var full = HOSTS[i] + PATH;
-        if (u.indexOf(full) === 0) return u.substring(u.indexOf(PATH));
-      }
+      if (typeof u !== 'string' || !/^https?:\/\//i.test(u)) return u;
+      try {
+        var url = new URL(u);
+        if (url.hostname !== HOST) return u;
+        for (var i = 0; i < PREFIXES.length; i++) {
+          var p = PREFIXES[i];
+          if (url.pathname.indexOf(p) === 0) {
+            return url.pathname + url.search; // → /api/... or /ext-dit/api/...
+          }
+        }
+      } catch (e) {}
       return u;
     }
-    if (window.fetch) {
-      var _fetch = window.fetch;
+
+    var _fetch = window.fetch;
+    if (_fetch) {
       window.fetch = function (input, init) {
-        var url = (typeof input === 'string') ? input : (input && input.url);
-        if (url) {
-          var nu = toLocal(url);
-          if (nu !== url) input = (typeof input === 'string') ? nu : new Request(nu, input);
+        var u = (typeof input === 'string') ? input : (input && input.url);
+        if (u) {
+          var nu = toLocal(u);
+          if (nu !== u) input = (typeof input === 'string') ? nu : new Request(nu, input);
         }
-        return _fetch(input, init || {});
+        return _fetch(input, init);
       };
     }
+
     if (window.XMLHttpRequest) {
       var _open = XMLHttpRequest.prototype.open;
       XMLHttpRequest.prototype.open = function (method, url) {
@@ -47,9 +53,7 @@
   })();
   </script>
 
-  <script type="text/javascript">
-    document.title = window.config.applicationTitle || window.config.applicationName;
-  </script>
+  <script>document.title = window.config.applicationTitle || window.config.applicationName;</script>
 </head>
 <body>
   <noscript>You need to enable JavaScript to run this app.</noscript>
