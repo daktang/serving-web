@@ -1,8 +1,4 @@
-// webpack.local.js
-// 로컬( http://localhost:3000 ) → 개발 포털로 프록시.
-// 매핑: /coreproxy → https://portal.../api, /extproxy → https://portal.../ext-dit/api
-//       /api, /ext-dit 직접호출도 받아서 포털로 패스스루.
-
+// 로컬(http://localhost:3000) → 개발 포털 프록시
 const base = require('./webpack.dev.js');
 
 const PORTAL   = 'portal.aiserving.dev.aip.domain.net';
@@ -10,28 +6,21 @@ const AUTH     = 'auth.dev.aip.domain.net';
 const KUBEFLOW = 'kubeflow.aiserving.dev.aip.domain.net';
 const LOCAL    = 'localhost:3000';
 
-// 기본 헤더(업스트림이 로컬 오리진 인지하도록)
 function onProxyReq(req) {
   req.setHeader('X-Forwarded-Proto', 'http');
   req.setHeader('X-Forwarded-Host', LOCAL);
   req.setHeader('X-Forwarded-Port', '3000');
 }
-
-// 포털 절대 URL을 로컬로 고정
 function rewriteLocationToLocal(res) {
-  const loc = res.headers['location'];
-  if (!loc) return;
+  const loc = res.headers['location']; if (!loc) return;
   res.headers['location'] = loc
     .replace(`https://${PORTAL}/authservice`, `http://${LOCAL}/authproxy`)
     .replace(`http://${PORTAL}/authservice`,  `http://${LOCAL}/authproxy`)
     .replace(`https://${PORTAL}`,              `http://${LOCAL}`)
     .replace(`http://${PORTAL}`,               `http://${LOCAL}`);
 }
-
-// Keycloak redirect_uri 를 로컬 콜백으로 강제
 function rewriteRedirectUriToLocal(res) {
-  const loc = res.headers['location'];
-  if (!loc) return;
+  const loc = res.headers['location']; if (!loc) return;
   try {
     const u = new URL(loc);
     if (u.hostname === AUTH) {
@@ -45,11 +34,8 @@ function rewriteRedirectUriToLocal(res) {
     }
   } catch {}
 }
-
-// Set-Cookie를 로컬에 맞게(HTTP)
 function rewriteSetCookie(res) {
-  const sc = res.headers['set-cookie'];
-  if (!sc) return;
+  const sc = res.headers['set-cookie']; if (!sc) return;
   const arr = Array.isArray(sc) ? sc : [sc];
   res.headers['set-cookie'] = arr.map(v =>
     v.replace(new RegExp(`Domain=${PORTAL}`, 'i'), 'Domain=')
@@ -59,8 +45,7 @@ function rewriteSetCookie(res) {
   );
 }
 
-// /coreproxy → /api (중복 coreproxy 제거, vN은 마지막 것만 유지)
-// 혼입된 /extproxy 는 /ext-dit/api/v1 로 보정
+// /coreproxy → /api (중복/버전/혼입 보정)
 const rewriteCore = (p) => {
   p = p.replace(/\/coreproxy(\/+coreproxy)+/g, '/coreproxy');
   const m = p.match(/\/extproxy\/(?:(api\/v\d+\/|v\d+\/))?(.+)/);
@@ -78,8 +63,7 @@ const rewriteCore = (p) => {
   }
   return p;
 };
-
-// /extproxy → /ext-dit/api (마지막 vN 유지)
+// /extproxy → /ext-dit/api
 const rewriteExt = (p) => {
   p = p.replace(/\/extproxy(\/+extproxy)+/g, '/extproxy');
   const vs = p.match(/\/v\d+\//g);
@@ -90,8 +74,7 @@ const rewriteExt = (p) => {
   }
   return p.replace(/^\/extproxy\/+/, '/ext-dit/api/');
 };
-
-// /api, /ext-dit 직접 호출도 받아서 그대로 전달
+// /api, /ext-dit 직접 경로 패스스루
 const rewriteApi    = (p) => p.replace(/^\/api\/+/, '/api/');
 const rewriteExtDit = (p) => p.replace(/^\/ext-dit\/+/, '/ext-dit/');
 
@@ -110,25 +93,18 @@ module.exports = {
   devServer: {
     ...base.devServer,
     host: 'localhost',
-    port: 3000, // HTTP
-    client: {
-      logging: 'verbose',
-      webSocketURL: { protocol: 'ws', hostname: 'localhost', port: '3000', pathname: '/ws' }
-    },
+    port: 3000,
+    client: { logging: 'verbose', webSocketURL: { protocol: 'ws', hostname: 'localhost', port: '3000', pathname: '/ws' } },
     proxy: {
-      // core / ext 프리픽스
       '/coreproxy': { ...commonPortalProxy, pathRewrite: rewriteCore },
       '/extproxy':  { ...commonPortalProxy, pathRewrite: rewriteExt },
 
-      // 직접 경로 패스스루
       '/api':       { ...commonPortalProxy, pathRewrite: rewriteApi },
       '/ext-dit':   { ...commonPortalProxy, pathRewrite: rewriteExtDit },
 
-      // 그대로 전달
       '/models':  { ...commonPortalProxy },
       '/serving': { ...commonPortalProxy },
 
-      // OIDC (리다이렉트/쿠키 보정)
       '/authproxy': {
         ...commonPortalProxy,
         pathRewrite: { '^/authproxy': '/authservice' },
@@ -141,10 +117,8 @@ module.exports = {
         onProxyRes(res) { rewriteRedirectUriToLocal(res); rewriteLocationToLocal(res); rewriteSetCookie(res); },
       },
 
-      // WebSocket
       '/socket.io': { ...commonPortalProxy, ws: true },
 
-      // Kubeflow
       '/kubeflowproxy': {
         target: `https://${KUBEFLOW}`,
         changeOrigin: true,
