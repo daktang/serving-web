@@ -1,154 +1,149 @@
-# 로컬 authenticate 정리해줄게
+// webpack.local.js
+const base = require('./webpack.dev.js');
 
-1. 제네럴
-Request URL
-http://localhost:3000/coreproxy/v2/extproxy/dit/user-consent
-Request Method
-POST
-Status Code
-500 Internal Server Error
-Remote Address
-127.0.0.1:3000
-Referrer Policy
-strict-origin-when-cross-origin
+const PORTAL   = 'portal.aiserving.dev.aip.domain.net';
+const AUTH     = 'auth.dev.aip.domain.net';
+const KUBEFLOW = 'kubeflow.aiserving.dev.aip.domain.net';
+const LOCAL    = 'localhost:3000';
 
-2. 응답 헤더
-access-control-allow-origin
-http://localhost:3000
-connection
-close
-content-length
-116
-content-type
-text/html; charset=utf-8
-date
-Mon, 18 Aug 2025 03:53:43 GMT
-server
-istio-envoy
-set-cookie
-authservice_session=MTc1NTQ4NzQwN3xOd3dBTkZKQ05GQldNMFpaVDFsTFRWZEpTVVpTUmpWRVRWVlVSRnBJUWtoWU5FZFhXRmcwUjFOQ01rWkdSRXhHTWxOU1NrTktORUU9fFn0qtQx1nKbAsVHXKK2ycdkqWeDsiBvtbHaApFMwbyZ; Domain=.aiserving.dev.aip.domain.net; Expires=Tue, 19 Aug 2025 03:53:43 GMT; HttpOnly; Path=/
-vary
-Origin, Accept-Encoding
-x-envoy-upstream-service-time
-3
-x-powered-by
-Express
+// helpers
+function onProxyReq(req) {
+  req.setHeader('X-Forwarded-Proto', 'http');
+  req.setHeader('X-Forwarded-Host', LOCAL);
+  req.setHeader('X-Forwarded-Port', '3000');
+}
+function rewriteLocationToLocal(res) {
+  const loc = res.headers['location']; if (!loc) return;
+  res.headers['location'] = loc
+    .replace(`https://${PORTAL}/authservice`, `http://${LOCAL}/authproxy`)
+    .replace(`http://${PORTAL}/authservice`,  `http://${LOCAL}/authproxy`)
+    .replace(`https://${PORTAL}`,              `http://${LOCAL}`)
+    .replace(`http://${PORTAL}`,               `http://${LOCAL}`);
+}
+function rewriteRedirectUriToLocal(res) {
+  const loc = res.headers['location']; if (!loc) return;
+  try {
+    const u = new URL(loc);
+    if (u.hostname === AUTH) {
+      const ru = u.searchParams.get('redirect_uri');
+      if (ru) {
+        const r = new URL(ru);
+        r.protocol = 'http:'; r.host = LOCAL; r.pathname = '/authproxy/oidc/callback';
+        u.searchParams.set('redirect_uri', r.toString());
+        res.headers['location'] = u.toString();
+      }
+    }
+  } catch {}
+}
+function rewriteSetCookie(res) {
+  const sc = res.headers['set-cookie']; if (!sc) return;
+  const arr = Array.isArray(sc) ? sc : [sc];
+  res.headers['set-cookie'] = arr.map(v =>
+    v.replace(new RegExp(`Domain=${PORTAL}`, 'i'), 'Domain=')
+     .replace(/Path=\/authservice/gi, 'Path=/')
+     .replace(/;\s*Secure/gi, '')
+     .replace(/;\s*SameSite=None/gi, '; SameSite=Lax')
+  );
+}
 
+// ✅ coreproxy 정규화 (authenticate는 그대로, extproxy 혼입만 특수 처리)
+const rewriteCore = (p) => {
+  // coreproxy 중복 제거
+  p = p.replace(/\/coreproxy(\/+coreproxy)+/g, '/coreproxy');
 
-3. 요청 헤더
-accept
-application/json, text/plain, */*
-accept-encoding
-gzip, deflate, br, zstd
-accept-language
-ko-KR,ko;q=0.9,en-US;q=0.8,en;q=0.7
-connection
-keep-alive
-content-length
-2
-content-type
-application/json
-cookie
-authservice_session=MTc1NTQ4NzQwN3xOd3dBTkZKQ05GQldNMFpaVDFsTFRWZEpTVVpTUmpWRVRWVlVSRnBJUWtoWU5FZFhXRmcwUjFOQ01rWkdSRXhHTWxOU1NrTktORUU9fFn0qtQx1nKbAsVHXKK2ycdkqWeDsiBvtbHaApFMwbyZ
-host
-localhost:3000
-kubeflow-userid
-syun7.kim
-namespace
-ais-smoke-testing
-origin
-http://localhost:3000
-project-id
-85
-referer
-http://localhost:3000/login
-sec-ch-ua
-"Not)A;Brand";v="8", "Chromium";v="138", "Google Chrome";v="138"
-sec-ch-ua-mobile
-?0
-sec-ch-ua-platform
-"Windows"
-sec-fetch-dest
-empty
-sec-fetch-mode
-cors
-sec-fetch-site
-same-origin
-user-agent
-Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/138.0.0.0 Safari/537.36
+  // coreproxy 안에 extproxy가 섞여 들어온 케이스 → ext-dit로 강제
+  // 예: /coreproxy/v2/extproxy/dit/user-consent → /ext-dit/api/v1/dit/user-consent
+  const m = p.match(/\/extproxy\/(?:(api\/v\d+\/|v\d+\/))?(.+)/);
+  if (m) {
+    const ver = m[1]
+      ? (m[1].startsWith('api/') ? m[1] : `api/${m[1]}`) // v3 → api/v3/
+      : 'api/v1/';                                       // 버전 없으면 v1
+    const tail = m[2];
+    return `/ext-dit/${ver}${tail}`;
+  }
 
+  // 일반 코어 API: /coreproxy → /api , 마지막 vN만 유지
+  p = p.replace(/^\/coreproxy\/+/, '/api/').replace(/\/api(\/api)+\//, '/api/');
+  const vs = p.match(/\/v\d+\//g);
+  if (vs && vs.length) {
+    const last = vs[vs.length - 1].slice(1, -1);           // 'v3'
+    const tail = p.split(new RegExp(`/${last}/`)).pop();    // 'authenticate' 등
+    return `/api/${last}/${tail}`;
+  }
+  return p; // 버전 없으면 /api/ 그대로
+};
 
-# 잘 되는 곳(A의 개발 환경 프론트엔드)의 정보
-1. 제네럴
-Request URL
-https://portal.aiserving.dev.aip.domain.net/ext-dit/api/v1/dit/user-consent
-Request Method
-POST
-Status Code
-200 OK
-Remote Address
-# ip private #
-Referrer Policy
-strict-origin-when-cross-origin
+// extproxy 정규화 (마지막 vN 유지)
+const rewriteExt  = (p) => {
+  p = p.replace(/\/extproxy(\/+extproxy)+/g, '/extproxy');
+  const vs = p.match(/\/v\d+\//g);
+  if (vs && vs.length) {
+    const last = vs[vs.length - 1].slice(1, -1);
+    const tail = p.split(new RegExp(`/${last}/`)).pop();
+    return `/ext-dit/api/${last}/${tail}`;
+  }
+  return p.replace(/^\/extproxy\/+/, '/ext-dit/api/');
+};
 
-2. 응답 헤더
-access-control-allow-origin
-https://portal.aiserving.dev.aip.domain.net
-content-length
-144
-content-type
-application/json
-date
-Mon, 18 Aug 2025 03:56:28 GMT
-server
-istio-envoy
-vary
-Origin
-x-envoy-upstream-service-time
-49
+const commonPortalProxy = {
+  target: `https://${PORTAL}`,
+  changeOrigin: true,
+  secure: false,
+  headers: { Host: PORTAL },
+  cookieDomainRewrite: { [PORTAL]: '' },
+  onProxyReq,
+  onProxyRes: rewriteLocationToLocal,
+};
 
+module.exports = {
+  ...base,
+  devServer: {
+    ...base.devServer,
+    host: 'localhost',
+    port: 3000, // HTTP
+    client: { logging: 'verbose', webSocketURL: { protocol: 'ws', hostname: 'localhost', port: '3000', pathname: '/ws' } },
 
+    proxy: {
+      // 프리픽스
+      '/coreproxy': { ...commonPortalProxy, pathRewrite: rewriteCore },
+      '/extproxy':  { ...commonPortalProxy, pathRewrite: rewriteExt },
 
-3. 요청 헤더
-accept
-application/json, text/plain, */*
-accept-encoding
-gzip, deflate, br, zstd
-accept-language
-ko-KR,ko;q=0.9,en-US;q=0.8,en;q=0.7
-connection
-keep-alive
-content-length
-2
-content-type
-application/json
-cookie
-authservice_session=MTc1NTQ4OTM4N3xOd3dBTkZkTFJraENSMGROVXpKU1ZVZElSamMzTjBOTk4wNDNXVWxUU1ZORE4xZ3lRa1EzVlVOSldFTklUVE5OVTBOSlJEUkdVa0U9fJw3jfB2fiRj-oi3ox07rKpBuu-G-B0DJtxTH3OzEBxR
-host
-portal.aiserving.dev.aip.domain.net
-kubeflow-userid
-syun7.kim
-namespace
-ais-smoke-testing
-origin
-https://portal.aiserving.dev.aip.domain.net
-project-id
-85
-referer
-https://portal.aiserving.dev.aip.domain.net/login
-sec-ch-ua
-"Not)A;Brand";v="8", "Chromium";v="138", "Google Chrome";v="138"
-sec-ch-ua-mobile
-?0
-sec-ch-ua-platform
-"Windows"
-sec-fetch-dest
-empty
-sec-fetch-mode
-cors
-sec-fetch-site
-same-origin
-user-agent
-Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/138.0.0.0 Safari/537.36
+      // 모델/서빙
+      '/models':  { ...commonPortalProxy },
+      '/serving': { ...commonPortalProxy },
 
+      // OIDC
+      '/authproxy': {
+        ...commonPortalProxy,
+        pathRewrite: { '^/authproxy': '/authservice' },
+        cookiePathRewrite: { '/authservice': '/', '/': '/' },
+        onProxyRes(res) { rewriteRedirectUriToLocal(res); rewriteLocationToLocal(res); rewriteSetCookie(res); },
+      },
+      '/authservice': {
+        ...commonPortalProxy,
+        cookiePathRewrite: { '/authservice': '/', '/': '/' },
+        onProxyRes(res) { rewriteRedirectUriToLocal(res); rewriteLocationToLocal(res); rewriteSetCookie(res); },
+      },
 
+      // socket.io
+      '/socket.io':  { ...commonPortalProxy, ws: true },
+
+      // Kubeflow
+      '/kubeflowproxy': {
+        target: `https://${KUBEFLOW}`,
+        changeOrigin: true,
+        secure: false,
+        pathRewrite: { '^/kubeflowproxy': '/' },
+        cookieDomainRewrite: { [KUBEFLOW]: '' },
+        onProxyReq,
+      },
+    },
+
+    setupMiddlewares: (m, devServer) => {
+      devServer.app.get('/', (_req, res) => res.redirect(302, '/dashboard'));
+      return m;
+    },
+  },
+
+  plugins: [ ...base.plugins ],
+};
