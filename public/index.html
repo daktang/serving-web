@@ -6,19 +6,18 @@
   <meta name="theme-color" content="#000000" />
   <link rel="icon" type="image/png" id="fevicon" href="images/icons/favicon.png" sizes="32x32">
 
-  <script src="config.js"></script>
-  <script src="//code.jquery.com/jquery-1.4.2.min.js"></script>
-  <script src="//cdn.socket.io/4.4.1/socket.io.min.js"></script>
+  <script type="text/javascript" src="config.js"></script>
+  <script type="text/javascript" src="//code.jquery.com/jquery-1.4.2.min.js"></script>
+  <script type="text/javascript" src="//cdn.socket.io/4.4.1/socket.io.min.js"></script>
 
-  <!-- dev 전용: detail API가 포털 절대 URL이면 /api로 바꿔 프록시 태움 -->
-  <script>
+  <!-- dev-only: model-server 화면의 detail 절대 URL 한 건만 /api로 치환 -->
+  <script type="text/javascript">
   (function () {
     var HOSTS = [
       'https://portal.aiserving.dev.aip.domain.net',
       'http://portal.aiserving.dev.aip.domain.net'
     ];
     var PATH = '/api/v2/menu/side-menu/detail';
-
     function toLocal(u) {
       if (typeof u !== 'string') return u;
       for (var i = 0; i < HOSTS.length; i++) {
@@ -27,7 +26,6 @@
       }
       return u;
     }
-
     if (window.fetch) {
       var _fetch = window.fetch;
       window.fetch = function (input, init) {
@@ -39,7 +37,6 @@
         return _fetch(input, init || {});
       };
     }
-
     if (window.XMLHttpRequest) {
       var _open = XMLHttpRequest.prototype.open;
       XMLHttpRequest.prototype.open = function (method, url) {
@@ -50,7 +47,9 @@
   })();
   </script>
 
-  <script>document.title = window.config.applicationTitle || window.config.applicationName;</script>
+  <script type="text/javascript">
+    document.title = window.config.applicationTitle || window.config.applicationName;
+  </script>
 </head>
 <body>
   <noscript>You need to enable JavaScript to run this app.</noscript>
