@@ -10,32 +10,28 @@
   <script src="//code.jquery.com/jquery-1.4.2.min.js"></script>
   <script src="//cdn.socket.io/4.4.1/socket.io.min.js"></script>
 
+  <!-- dev 전용: 포털 절대 URL의 /api/*, /ext-dit/api/* 만 로컬 프록시로 강제 -->
   <script>
-  // dev: portal 절대 URL 중 /api/*, /ext-dit/api/* 는 항상 프록시(상대경로)로 태움
   (function () {
-    var ORIGINS = [
-      'https://portal.aiserving.dev.aip.domain.net',
-      'http://portal.aiserving.dev.aip.domain.net'
-    ];
+    var HOST = 'portal.aiserving.dev.aip.domain.net';
     var PREFIXES = ['/api/', '/ext-dit/api/'];
 
     function toLocal(u) {
       if (typeof u !== 'string') return u;
       try {
-        var url = new URL(u, window.location.href); // 상대/절대 모두 파싱
-        if (url.origin && ORIGINS.indexOf(url.origin) !== -1) {
-          for (var i = 0; i < PREFIXES.length; i++) {
-            var p = PREFIXES[i];
-            if (url.pathname.indexOf(p) === 0) {
-              return url.pathname + url.search + url.hash; // → /api/... 또는 /ext-dit/api/...
-            }
+        var x = new URL(u, window.location.href); // 절대/상대 모두 파싱
+        if (x.hostname !== HOST) return u;
+        for (var i = 0; i < PREFIXES.length; i++) {
+          var p = PREFIXES[i];
+          if (x.pathname.indexOf(p) === 0) {
+            return x.pathname + x.search + x.hash; // → /api/... or /ext-dit/api/...
           }
         }
       } catch (e) {}
       return u;
     }
 
-    // fetch 패치
+    // fetch
     if (window.fetch) {
       var _fetch = window.fetch;
       window.fetch = function (input, init) {
@@ -50,7 +46,7 @@
       };
     }
 
-    // XHR 패치
+    // XHR
     if (window.XMLHttpRequest) {
       var _open = XMLHttpRequest.prototype.open;
       XMLHttpRequest.prototype.open = function (method, url) {
@@ -64,7 +60,7 @@
       };
     }
 
-    // jQuery 1.4.2 ajax 패치 (있을 때만)
+    // jQuery 1.4.2
     if (window.jQuery && jQuery.ajax) {
       var _ajax = jQuery.ajax;
       jQuery.ajax = function (opt) {
