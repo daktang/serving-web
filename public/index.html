@@ -1,3 +1,4 @@
+<!-- public/index.html — dev용: portal 절대 URL 중 /api, /ext-dit/api 만 프록시로 유도 -->
 <!DOCTYPE html>
 <html lang="en" dir="ltr">
 <head>
@@ -10,45 +11,30 @@
   <script src="//code.jquery.com/jquery-1.4.2.min.js"></script>
   <script src="//cdn.socket.io/4.4.1/socket.io.min.js"></script>
 
-  <!-- dev: 포털 절대 URL 중 /api, /ext-dit/api만 로컬 프록시로 돌림 -->
   <script>
   (function () {
     var HOST = 'portal.aiserving.dev.aip.domain.net';
-    var PREFIXES = ['/api/', '/ext-dit/api/'];
-
-    function toLocal(u) {
+    var PREFIX = ['/api/', '/ext-dit/api/'];
+    function toLocal(u){
       if (typeof u !== 'string' || !/^https?:\/\//i.test(u)) return u;
       try {
-        var url = new URL(u);
-        if (url.hostname !== HOST) return u;
-        for (var i = 0; i < PREFIXES.length; i++) {
-          var p = PREFIXES[i];
-          if (url.pathname.indexOf(p) === 0) {
-            return url.pathname + url.search; // → /api/... or /ext-dit/api/...
-          }
+        var x = new URL(u);
+        if (x.hostname !== HOST) return u;
+        for (var i=0;i<PREFIX.length;i++){
+          if (x.pathname.indexOf(PREFIX[i])===0) return x.pathname + x.search;
         }
-      } catch (e) {}
+      } catch(e){}
       return u;
     }
-
-    var _fetch = window.fetch;
-    if (_fetch) {
-      window.fetch = function (input, init) {
-        var u = (typeof input === 'string') ? input : (input && input.url);
-        if (u) {
-          var nu = toLocal(u);
-          if (nu !== u) input = (typeof input === 'string') ? nu : new Request(nu, input);
-        }
-        return _fetch(input, init);
-      };
-    }
-
-    if (window.XMLHttpRequest) {
-      var _open = XMLHttpRequest.prototype.open;
-      XMLHttpRequest.prototype.open = function (method, url) {
-        arguments[1] = toLocal(url);
-        return _open.apply(this, arguments);
-      };
+    var F = window.fetch;
+    if (F) window.fetch = function(i,o){
+      var u = (typeof i==='string') ? i : (i && i.url);
+      if (u){ var nu = toLocal(u); if (nu!==u) i = (typeof i==='string') ? nu : new Request(nu,i); }
+      return F(i,o);
+    };
+    if (window.XMLHttpRequest){
+      var _o = XMLHttpRequest.prototype.open;
+      XMLHttpRequest.prototype.open = function(m,u){ arguments[1]=toLocal(u); return _o.apply(this,arguments); };
     }
   })();
   </script>
