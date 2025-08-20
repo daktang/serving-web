@@ -1,10 +1,9 @@
-// webpack.local.js — 과거 인증 OK 버전 복구 (coreproxy 정규화 + OIDC 리다이렉트/쿠키 처리 + 리다이렉트 고정)
+// 로컬(http://localhost:3000) → 개발 포털 프록시
 const base = require('./webpack.dev.js');
 
-const PORTAL        = 'portal.aiserving.dev.aip.domain.net';
-const AUTH          = 'auth.dev.aip.domain.net';
-const KUBEFLOW      = 'kubeflow.aiserving.dev.aip.domain.net';
-const LOCAL_ORIGIN  = 'http://localhost:3000';
+const PORTAL   = 'portal.aiserving.dev.aip.domain.net';
+const KUBEFLOW = 'kubeflow.aiserving.dev.aip.domain.net';
+const LOCAL    = 'http://localhost:3000';
 
 // 30x Location이 portal로 향하면 localhost로 고정(리다이렉트도 프록시 경유 유지)
 function rewriteLocationToLocal(proxyRes) {
@@ -13,55 +12,38 @@ function rewriteLocationToLocal(proxyRes) {
   try {
     const u = new URL(loc);
     if (u.hostname === PORTAL) {
-      proxyRes.headers['location'] = `${LOCAL_ORIGIN}${u.pathname}${u.search}${u.hash}`;
+      proxyRes.headers['location'] = `${LOCAL}${u.pathname}${u.search}${u.hash}`;
     }
   } catch (_) {}
 }
 
-// Keycloak redirect_uri를 로컬 콜백으로 고정 (인증 플로우 유지)
-function rewriteRedirectUriToLocal(proxyRes) {
-  const loc = proxyRes.headers['location'];
-  if (!loc) return;
-  try {
-    const u = new URL(loc);
-    if (u.hostname === AUTH) {
-      const ru = u.searchParams.get('redirect_uri');
-      if (ru) {
-        const r = new URL(ru);
-        r.protocol = 'http:'; r.host = 'localhost:3000'; r.pathname = '/authproxy/oidc/callback';
-        u.searchParams.set('redirect_uri', r.toString());
-        proxyRes.headers['location'] = u.toString();
-      }
-    }
-  } catch (_) {}
-}
-
-// Set-Cookie를 로컬에 맞게(도메인 제거, Path=/, Secure 제거, SameSite=Lax)
-function rewriteSetCookie(proxyRes) {
-  const sc = proxyRes.headers['set-cookie'];
-  if (!sc) return;
-  const arr = Array.isArray(sc) ? sc : [sc];
-  proxyRes.headers['set-cookie'] = arr.map(v =>
-    v.replace(new RegExp(`Domain=${PORTAL}`, 'i'), 'Domain=')
-     .replace(/Path=\/authservice/gi, 'Path=/')
-     .replace(/;\s*Secure/gi, '')
-     .replace(/;\s*SameSite=None/gi, '; SameSite=Lax')
-  );
-}
-
-// /coreproxy 정규화 (과거 해결본): 중복 coreproxy 제거, 마지막 vN 유지 → /api/vN/..., 버전 없으면 /api/ 접두
+// ── 핵심: /coreproxy 정규화 (과거 해결본 재적용) ──────────────────────────
 // 예) /coreproxy/v2/coreproxy/v3/authenticate → /api/v3/authenticate
-function rewriteCore(path) {
+function coreRewriter(path) {
   let p = path;
 
-  // (1) 모든 /coreproxy 토큰 제거
+  // 0) authenticate 특수 케이스: 흔히 중복 프리픽스가 들어오는 엔드포인트를 먼저 정리
+  if (/^\/coreproxy\/.+\/authenticate(\b|\/|\?)/.test(p)) {
+    // 가장 마지막 vN만 유지
+    const vers = [...p.matchAll(/\/v(\d+)\//g)];
+    if (vers.length > 0) {
+      const last = vers[vers.length - 1][1];
+      const idx  = p.lastIndexOf(`/v${last}/`);
+      const tail = p.slice(idx + (`/v${last}/`).length); // authenticate...
+      return `/api/v${last}/${tail}`;
+    }
+    // 버전이 없으면 v3 가정 불가 → /api/ 로만 보냄
+    return p.replace(/^\/coreproxy\/+/, '/api/');
+  }
+
+  // 1) 모든 /coreproxy 토큰 제거
   p = p.replace(/\/coreproxy(\/|$)/g, '/');
 
-  // (2) 슬래시 정리
+  // 2) 슬래시 정리
   p = p.replace(/\/{2,}/g, '/');
   if (!p.startsWith('/')) p = '/' + p;
 
-  // (3) 마지막 버전 vN만 채택 → /api/vN/<tail>
+  // 3) 마지막 버전 vN만 채택 → /api/vN/<tail>
   const vers = [...p.matchAll(/\/v(\d+)\//g)];
   if (vers.length > 0) {
     const last = vers[vers.length - 1][1]; // 숫자만
@@ -71,13 +53,13 @@ function rewriteCore(path) {
     return `/api/v${last}/${tail}`;
   }
 
-  // (4) 버전이 없으면 /api/ 접두, /api/api 중복 방지
+  // 4) 버전이 없으면 /api/ 접두, /api/api 중복 방지
   if (p.startsWith('/api/')) return p.replace(/\/api(\/api)+\//, '/api/');
   return '/api' + (p.startsWith('/') ? '' : '/') + p.replace(/^\/+/, '');
 }
 
 // /extproxy → /ext-dit/api (간단 매핑)
-function rewriteExt(path) {
+function extRewriter(path) {
   return path.replace(/^\/extproxy/, '/ext-dit/api');
 }
 
@@ -97,30 +79,28 @@ module.exports = {
     host: 'localhost',
     port: 3000,
     client: { logging: 'verbose' },
+
     proxy: {
-      // 상대 경로 직접 호출
-      '/api':         { ...common },                 // → https://portal.../api/**
-      '/ext-dit':     { ...common },                 // → https://portal.../ext-dit/**
+      // 상대 경로 직접 호출 (그대로 패스스루)
+      '/api':         { ...common },
+      '/ext-dit':     { ...common },
       '/models':      { ...common },
       '/serving':     { ...common },
+      '/authservice': { ...common },
       '/socket.io':   { ...common, ws: true },
 
-      // 인증(과거 동작 복구)
-      '/authproxy': {
-        ...common,
-        pathRewrite: { '^/authproxy': '/authservice' },
-        cookiePathRewrite: { '/authservice': '/', '/': '/' },
-        onProxyRes(res) { rewriteRedirectUriToLocal(res); rewriteLocationToLocal(res); rewriteSetCookie(res); },
+      // B 스타일 프리픽스 (여기가 핵심)
+      // http-proxy-middleware 버전 차 대비: pathRewrite와 rewrite 둘 다 지정
+      '/coreproxy': { 
+        ...common, 
+        pathRewrite: coreRewriter,
+        rewrite: coreRewriter
       },
-      '/authservice': {
-        ...common,
-        cookiePathRewrite: { '/authservice': '/', '/': '/' },
-        onProxyRes(res) { rewriteRedirectUriToLocal(res); rewriteLocationToLocal(res); rewriteSetCookie(res); },
+      '/extproxy':  { 
+        ...common, 
+        pathRewrite: extRewriter,
+        rewrite: extRewriter
       },
-
-      // B 스타일 프리픽스 (핵심: coreproxy 정규화)
-      '/coreproxy':   { ...common, pathRewrite: rewriteCore },
-      '/extproxy':    { ...common, pathRewrite: rewriteExt },
 
       // Kubeflow
       '/kubeflowproxy': {
