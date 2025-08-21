@@ -1,8 +1,10 @@
+// public/config.js
 window.config = {
   namespace: 'aiserving-system',
   rootContext: '',
   metadata: { name: 'FrontendConfigmap' },
 
+  // B-스타일 프리픽스(브라우저는 localhost만 칩니다)
   apiGateway: {
     base_url_V2: '/coreproxy/',
     dit_ext_base_url_V1: '/extproxy/',
@@ -10,6 +12,7 @@ window.config = {
   },
   coreApiUrl: '/coreproxy/',
 
+  // 로그아웃 후 로컬로 복귀(HTTP)
   kubeflowLogout:
     'https://auth.dev.aip.domain.net/auth/realms/aiplatform/protocol/openid-connect/logout'
     + '?client_id=serve&post_logout_redirect_uri='
