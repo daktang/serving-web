@@ -38,4 +38,75 @@
     function toLocal(u) {
       if (typeof u !== 'string') return u;
       var before = u;
-      var nu
+      var nu = hardRewrite(before);
+      if (nu !== before) {
+        try { console.debug('[dev-rewrite] →', nu, ' (from:', before, ')'); } catch(_) {}
+        return nu;
+      }
+      try {
+        var x = new URL(before, window.location.href);
+        if (x.hostname === HOST) {
+          // portal 호스트로 향하는 /api|/coreproxy|... 은 상대경로로 전환
+          var p = x.pathname;
+          if (/^\/(api|coreproxy|ext-dit\/api|models|serving|authservice)\//i.test(p)) {
+            nu = p + x.search + x.hash;
+            console.debug('[dev-rewrite] →', nu, ' (from:', before, ')');
+            return nu;
+          }
+        }
+      } catch (_) {}
+      return before;
+    }
+
+    // fetch 훅
+    if (window.fetch) {
+      var _fetch = window.fetch;
+      window.fetch = function (input, init) {
+        if (typeof input === 'string') {
+          input = toLocal(input);
+        } else if (input && input.url) {
+          var nu = toLocal(input.url);
+          if (nu !== input.url) input = new Request(nu, input);
+        }
+        init = init || {};
+        if (init.credentials == null) init.credentials = 'include';
+        return _fetch(input, init);
+      };
+    }
+
+    // XHR 훅
+    if (window.XMLHttpRequest) {
+      var _open = XMLHttpRequest.prototype.open;
+      XMLHttpRequest.prototype.open = function (method, url) {
+        arguments[1] = toLocal(url);
+        return _open.apply(this, arguments);
+      };
+      var _send = XMLHttpRequest.prototype.send;
+      XMLHttpRequest.prototype.send = function (body) {
+        try { if (this.withCredentials == null) this.withCredentials = true; } catch(e){}
+        return _send.apply(this, arguments);
+      };
+    }
+
+    // jQuery 1.4.2 훅
+    if (window.jQuery && jQuery.ajax) {
+      var _ajax = jQuery.ajax;
+      jQuery.ajax = function (opt) {
+        if (typeof opt === 'string') opt = { url: opt };
+        opt = opt || {};
+        if (opt.url) opt.url = toLocal(opt.url);
+        opt.xhrFields = opt.xhrFields || {};
+        if (opt.xhrFields.withCredentials == null) opt.xhrFields.withCredentials = true;
+        return _ajax.call(jQuery, opt);
+      };
+    }
+  })();
+  </script>
+
+  <script>document.title = window.config.applicationTitle || window.config.applicationName;</script>
+</head>
+<body>
+  <noscript>You need to enable JavaScript to run this app.</noscript>
+  <div id="root" class="grip-resizable"></div>
+</body>
+</html>
