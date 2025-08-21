@@ -10,28 +10,48 @@
   <script src="//code.jquery.com/jquery-1.4.2.min.js"></script>
   <script src="//cdn.socket.io/4.4.1/socket.io.min.js"></script>
 
-  <!-- dev 전용: 포털 절대 URL의 /api/*, /ext-dit/api/* 만 로컬 프록시로 강제 -->
+  <!-- dev 전용: 포털 절대 URL을 항상 로컬 프록시로 강제 (authenticate는 건드리지 않음) -->
   <script>
   (function () {
     var HOST = 'portal.aiserving.dev.aip.domain.net';
-    var PREFIXES = ['/api/', '/ext-dit/api/'];
+    // 실제로 쓰는 프리픽스 전부 포함: detail(/api), resource-summary(/coreproxy) 모두 커버
+    var PREFIXES = ['/api/', '/ext-dit/api/', '/coreproxy/', '/models/', '/serving/', '/authservice/'];
+
+    // 일부 코드가 '.../domain/net/...' 식으로 만드는 오탈자 보정
+    function fixDomainNetBug(u) {
+      if (typeof u !== 'string') return u;
+      // http(s)://portal.../net/<prefix> → /<prefix>
+      var re = /^https?:\/\/portal\.aiserving\.dev\.aip\.domain\.net\/net\/(?=(api\/|ext-dit\/api\/|coreproxy\/|models\/|serving\/|authservice\/))/i;
+      return u.replace(re, '/');
+    }
 
     function toLocal(u) {
       if (typeof u !== 'string') return u;
+      u = fixDomainNetBug(u);
       try {
         var x = new URL(u, window.location.href); // 절대/상대 모두 파싱
-        if (x.hostname !== HOST) return u;
-        for (var i = 0; i < PREFIXES.length; i++) {
-          var p = PREFIXES[i];
-          if (x.pathname.indexOf(p) === 0) {
-            return x.pathname + x.search + x.hash; // → /api/... or /ext-dit/api/...
+        if (x.hostname === HOST) {
+          for (var i = 0; i < PREFIXES.length; i++) {
+            var p = PREFIXES[i];
+            if (x.pathname.indexOf(p) === 0) {
+              // → /api/... , /coreproxy/... 등 상대 경로로 강제 (localhost:3000 프록시 경유)
+              return x.pathname + x.search + x.hash;
+            }
+          }
+        }
+        // 희귀 케이스: 호스트가 '.domain'이고 path가 '/net/'로 시작하는 경우도 상대 경로로 보정
+        if (x.hostname === 'portal.aiserving.dev.aip.domain' && x.pathname.indexOf('/net/') === 0) {
+          var rest = x.pathname.slice(5); // '/net/' 제거
+          for (var j = 0; j < PREFIXES.length; j++) {
+            var pj = PREFIXES[j];
+            if (rest.indexOf(pj) === 0) return '/' + rest + x.search + x.hash;
           }
         }
       } catch (e) {}
       return u;
     }
 
-    // fetch
+    // fetch 훅
     if (window.fetch) {
       var _fetch = window.fetch;
       window.fetch = function (input, init) {
@@ -46,11 +66,11 @@
       };
     }
 
-    // XHR
+    // XHR 훅 (axios 포함 모든 XHR 경로 커버)
     if (window.XMLHttpRequest) {
       var _open = XMLHttpRequest.prototype.open;
       XMLHttpRequest.prototype.open = function (method, url) {
-        arguments[1] = toLocal(url);
+        arguments[1] = toLocal(fixDomainNetBug(url));
         return _open.apply(this, arguments);
       };
       var _send = XMLHttpRequest.prototype.send;
@@ -60,13 +80,13 @@
       };
     }
 
-    // jQuery 1.4.2
+    // jQuery 1.4.2 훅
     if (window.jQuery && jQuery.ajax) {
       var _ajax = jQuery.ajax;
       jQuery.ajax = function (opt) {
         if (typeof opt === 'string') opt = { url: opt };
         opt = opt || {};
-        if (opt.url) opt.url = toLocal(opt.url);
+        if (opt.url) opt.url = toLocal(fixDomainNetBug(opt.url));
         opt.xhrFields = opt.xhrFields || {};
         if (opt.xhrFields.withCredentials == null) opt.xhrFields.withCredentials = true;
         return _ajax.call(jQuery, opt);
