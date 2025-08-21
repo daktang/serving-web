@@ -24,7 +24,7 @@ window.config = {
   defaultAffinityConfig: 'servingPool',
 
   kubeflowURL: '/kubeflowproxy/',
-  kubeflowBaseUrl: 'localhost:3000/kubeflowproxy',
+  kubeflowBaseUrl: 'http://localhost:3000/kubeflowproxy', // ← 프로토콜 추가
 
   servingExtBaseUrl: '/serving',
 
