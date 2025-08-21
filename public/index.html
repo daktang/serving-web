@@ -6,102 +6,102 @@
   <meta name="theme-color" content="#000000" />
   <link rel="icon" type="image/png" id="fevicon" href="images/icons/favicon.png" sizes="32x32">
 
-  <script src="config.js"></script>
-  <script src="//code.jquery.com/jquery-1.4.2.min.js"></script>
-  <script src="//cdn.socket.io/4.4.1/socket.io.min.js"></script>
-
-  <!-- dev 전용: 포털 절대 URL을 항상 로컬 프록시로 강제 (authenticate는 프록시가 처리. webpack은 그대로 둠) -->
+  <!-- ⚠️ 최우선: 어떤 스크립트보다 먼저 fetch/XHR를 갈아끼움 -->
   <script>
   (function () {
-    var HOST = 'portal.aiserving.dev.aip.domain.net';
+    var HOST_RE = /https?:\/\/portal\.aiserving\.dev\.aip\.domain\.net\/(?:net\/)?(?=(api|coreproxy|ext-dit\/api|models|serving|authservice)\/)/i;
 
-    // portal 도메인으로 향하는 /api, /coreproxy 등은 전부 localhost 상대경로로 강제
-    // 오탈자 '.../domain/net/...' 케이스 포함
-    var ABS_RE = /^https?:\/\/portal\.aiserving\.dev\.aip\.domain\.net\/(?:(?:net\/)?)(?=(api\/|coreproxy\/|ext-dit\/api\/|models\/|serving\/|authservice\/))/i;
-    var ABS_DOMAIN_NET_HOST = 'portal.aiserving.dev.aip.domain'; // host에 .net 빠진 케이스
+    function hardRewrite(str) {
+      if (typeof str !== 'string') return str;
+      // 절대 URL → 상대경로 (/api..., /coreproxy..., /ext-dit/api..., /models..., /serving..., /authservice...)
+      var out = str.replace(HOST_RE, '/');
+      if (out !== str) return out;
 
-    function hardRewrite(u) {
-      if (typeof u !== 'string') return u;
-      // https://portal.../(net/)?<prefix>...  →  /<prefix>...
-      var v = u.replace(ABS_RE, '/');
-      if (v !== u) return v;
-      // http(s)://portal.aiserving.dev.aip.domain/net/<prefix>... → /<prefix>...
-      try {
-        var x = new URL(u, window.location.href);
-        if (x.hostname === ABS_DOMAIN_NET_HOST && x.pathname.indexOf('/net/') === 0) {
-          return x.pathname.slice(4) + x.search + x.hash; // '/net' 제거 → '/api...'
+      // 혹시 문자열에 호스트가 포함만 되어 있는 경우도 강제 치환
+      var i = str.indexOf('portal.aiserving.dev.aip.domain.net/');
+      if (i >= 0) {
+        var tail = str.slice(i + 'portal.aiserving.dev.aip.domain.net/'.length);
+        // net/ 가 끼어든 경우 제거
+        if (tail.indexOf('net/') === 0) tail = tail.slice(4);
+        if (/^(api|coreproxy|ext-dit\/api|models|serving|authservice)\//i.test(tail)) {
+          return '/' + tail;
         }
-      } catch (_) {}
-      return u;
-    }
-
-    function toLocal(u) {
-      if (typeof u !== 'string') return u;
-      var before = u;
-      var nu = hardRewrite(before);
-      if (nu !== before) {
-        try { console.debug('[dev-rewrite] →', nu, ' (from:', before, ')'); } catch(_) {}
-        return nu;
       }
-      try {
-        var x = new URL(before, window.location.href);
-        if (x.hostname === HOST) {
-          // portal 호스트로 향하는 /api|/coreproxy|... 은 상대경로로 전환
-          var p = x.pathname;
-          if (/^\/(api|coreproxy|ext-dit\/api|models|serving|authservice)\//i.test(p)) {
-            nu = p + x.search + x.hash;
-            console.debug('[dev-rewrite] →', nu, ' (from:', before, ')');
-            return nu;
-          }
-        }
-      } catch (_) {}
-      return before;
+      return str;
     }
 
-    // fetch 훅
-    if (window.fetch) {
-      var _fetch = window.fetch;
-      window.fetch = function (input, init) {
-        if (typeof input === 'string') {
-          input = toLocal(input);
-        } else if (input && input.url) {
-          var nu = toLocal(input.url);
-          if (nu !== input.url) input = new Request(nu, input);
-        }
-        init = init || {};
-        if (init.credentials == null) init.credentials = 'include';
-        return _fetch(input, init);
-      };
+    // fetch 패치 (덮어쓰기 방지)
+    var _origFetch = window.fetch;
+    function patchedFetch(input, init) {
+      if (typeof input === 'string') {
+        input = hardRewrite(input);
+      } else if (input && input.url) {
+        var nu = hardRewrite(input.url);
+        if (nu !== input.url) input = new Request(nu, input);
+      }
+      init = init || {};
+      if (init.credentials == null) init.credentials = 'include';
+      return _origFetch.call(this, input, init);
+    }
+    if (_origFetch) {
+      Object.defineProperty(window, 'fetch', { value: patchedFetch, writable: false, configurable: false });
     }
 
-    // XHR 훅
-    if (window.XMLHttpRequest) {
-      var _open = XMLHttpRequest.prototype.open;
-      XMLHttpRequest.prototype.open = function (method, url) {
-        arguments[1] = toLocal(url);
-        return _open.apply(this, arguments);
+    // XMLHttpRequest 패치 (덮어쓰기 방지)
+    var _XHR = window.XMLHttpRequest;
+    if (_XHR) {
+      var _open = _XHR.prototype.open;
+      _XHR.prototype.open = function (method, url) {
+        try { url = hardRewrite(url); } catch (_) {}
+        return _open.apply(this, [method, url]);
       };
-      var _send = XMLHttpRequest.prototype.send;
-      XMLHttpRequest.prototype.send = function (body) {
-        try { if (this.withCredentials == null) this.withCredentials = true; } catch(e){}
+      var _send = _XHR.prototype.send;
+      _XHR.prototype.send = function (body) {
+        try { if (this.withCredentials == null) this.withCredentials = true; } catch (_){}
         return _send.apply(this, arguments);
       };
+      // XHR 자체를 못 바꾸게 잠급니다(다시 덮어쓰기 방지)
+      try { Object.freeze(_XHR.prototype); } catch(_){}
     }
 
-    // jQuery 1.4.2 훅
-    if (window.jQuery && jQuery.ajax) {
+    // jQuery 1.x ajax 패치 (있을 경우)
+    var _defineJqHook = function () {
+      if (!window.jQuery || !jQuery.ajax) return;
       var _ajax = jQuery.ajax;
       jQuery.ajax = function (opt) {
         if (typeof opt === 'string') opt = { url: opt };
         opt = opt || {};
-        if (opt.url) opt.url = toLocal(opt.url);
+        if (opt.url) opt.url = hardRewrite(opt.url);
         opt.xhrFields = opt.xhrFields || {};
         if (opt.xhrFields.withCredentials == null) opt.xhrFields.withCredentials = true;
         return _ajax.call(jQuery, opt);
       };
+      try { Object.defineProperty(jQuery, 'ajax', { writable: false }); } catch(_){}
+    };
+    document.addEventListener('DOMContentLoaded', _defineJqHook);
+
+    // axios 요청 인터셉터 (있을 경우)
+    function hookAxios() {
+      if (!window.axios || !window.axios.interceptors || !window.axios.interceptors.request) return;
+      window.axios.interceptors.request.use(function (config) {
+        if (config && config.url) {
+          var nu = hardRewrite(config.url);
+          if (nu !== config.url) config.url = nu;
+        }
+        if (!config.withCredentials) config.withCredentials = true;
+        return config;
+      });
     }
+    // 번들 로드 전/후 모두 시도
+    hookAxios();
+    window.addEventListener('load', hookAxios);
   })();
   </script>
+
+  <!-- 기존 순서 유지 -->
+  <script src="config.js"></script>
+  <script src="//code.jquery.com/jquery-1.4.2.min.js"></script>
+  <script src="//cdn.socket.io/4.4.1/socket.io.min.js"></script>
 
   <script>document.title = window.config.applicationTitle || window.config.applicationName;</script>
 </head>
