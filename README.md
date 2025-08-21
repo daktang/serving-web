@@ -1,13 +1,26 @@
-
-# 사용자의 동작을 순서대로 설명한다.
-
-1. 다양한 다른 곳의 탭을 클릭하면 localhost:3000을 기반으로 뒤에 잘 연결이 되어서 동작함
-2. model-serve만 접근하면 cors에러 발생
---- 여기 까지 로그 찍히는 건 하나도 없음 ---
-3. 이후 해당 2번의 상태에서 F5를 눌러서 새로고침을 하면 아예 주소 자체가 portal.aiserving.dev.aip.domain.net/dashboard 으로 이동을 하고, 아래와 같은 로그가 갑자기 생성됨.
-
-2025-08-21 17:29:22: webpack 5.101.0 compiled successfully in 42917 ms (70839426c222de5f230a)
-[PROXY DEBUG] Original path: /extension/model-server
-[PROXY DEBUG] Rewritten path: /extension/model-server
-[PROXY DEBUG] Original path: /extension/js/socket.io.min.js.map
-[PROXY DEBUG] Rewritten path: /extension/js/socket.io.min.js.map
+hook.js:608 Material-UI: The key `arrow` provided to the classes prop is not implemented in WithStyles(ForwardRef(Tooltip)).
+You can only override one of the following: root. Error Component Stack
+    at GroupMenu.js:20:33
+    at ul (<anonymous>)
+    at SideMenu (Header.js:76:13)
+    at div (<anonymous>)
+    at div (<anonymous>)
+    at div (<anonymous>)
+    at div (<anonymous>)
+    at SideNavigationDrawer (SideNavigationDrawer.js:20:42)
+    at div (<anonymous>)
+    at Header (Header.js:82:21)
+    at __WEBPACK_DEFAULT_EXPORT__ (Main.js:41:27)
+    at __WEBPACK_DEFAULT_EXPORT__ (RouteWrapper.js:10:28)
+    at PrivateRoutes (PrivateRoutes.js:67:31)
+    at App (index.js:14:37)
+    at ProjectSelectionContextProvider (ProjectSelectionContext.js:15:13)
+(index):91 [XHR hook] Original URL for open: //portal.aiserving.dev.aip.domain.net/api/v2/check_user_session
+(index):18 [forceLocal] Input URL: //portal.aiserving.dev.aip.domain.net/api/v2/check_user_session
+(index):33 [forceLocal] Rewritten URL (URL object): http://localhost:3000/api/v2/check_user_session
+(index):18 [forceLocal] Input URL: /serving/model-server?ns=ais-backend-test&uId=&projId=84&isAdmin=&projName=&accName=&roleId=&isApiCallAllowed=true
+(index):62 [forceLocal] No rewrite needed, returning original: /serving/model-server?ns=ais-backend-test&uId=&projId=84&isAdmin=&projName=&accName=&roleId=&isApiCallAllowed=true
+i18n.js:8 i18next: languageChanged en
+i18n.js:8 i18next: initialized 
+{debug: true, initImmediate: true, ns: Array(1), defaultNS: 'translations', fallbackLng: Array(1), …}
+index.js:18 react-i18next:: It seems you are still using the old wait option, you may migrate 
