@@ -17,23 +17,29 @@ function rewriteLocationToLocal(proxyRes) {
   } catch (_) {}
 }
 
-// ── 핵심: /coreproxy 정규화 (과거 해결본 재적용) ──────────────────────────
-// 예) /coreproxy/v2/coreproxy/v3/authenticate → /api/v3/authenticate
+// ── 핵심: /coreproxy 정규화 (중복 프리픽스/버전 → 마지막 vN 기준 /api/vN/<tail>) ──
 function coreRewriter(path) {
   let p = path;
 
-  // 0) authenticate 특수 케이스: 흔히 중복 프리픽스가 들어오는 엔드포인트를 먼저 정리
-  if (/^\/coreproxy\/.+\/authenticate(\b|\/|\?)/.test(p)) {
-    // 가장 마지막 vN만 유지
-    const vers = [...p.matchAll(/\/v(\d+)\//g)];
+  // 공통 유틸: 마지막 vN 기준으로 /api/vN/<tail> 재작성
+  function keepLastVersion(pp) {
+    const vers = [...pp.matchAll(/\/v(\d+)\//g)];
     if (vers.length > 0) {
       const last = vers[vers.length - 1][1];
-      const idx  = p.lastIndexOf(`/v${last}/`);
-      const tail = p.slice(idx + (`/v${last}/`).length); // authenticate...
+      const marker = `/v${last}/`;
+      const idx = pp.lastIndexOf(marker);
+      const tail = pp.slice(idx + marker.length);
       return `/api/v${last}/${tail}`;
     }
-    // 버전이 없으면 v3 가정 불가 → /api/ 로만 보냄
-    return p.replace(/^\/coreproxy\/+/, '/api/');
+    // 버전이 전혀 없으면 /api로만 정규화
+    return pp.replace(/^\/coreproxy\/+/, '/api/');
+  }
+
+  // 0) authenticate / resource-summary 특수 케이스: 가장 마지막 vN만 유지
+  if (/^\/coreproxy\/.+\/(authenticate|resource-summary)(\b|\/|\?)/.test(p)) {
+    // /coreproxy/ 토큰 제거 → 슬래시 정리 → 마지막 vN만 유지
+    p = p.replace(/\/coreproxy(\/|$)/g, '/').replace(/\/{2,}/g, '/');
+    return keepLastVersion(p);
   }
 
   // 1) 모든 /coreproxy 토큰 제거
@@ -43,10 +49,10 @@ function coreRewriter(path) {
   p = p.replace(/\/{2,}/g, '/');
   if (!p.startsWith('/')) p = '/' + p;
 
-  // 3) 마지막 버전 vN만 채택 → /api/vN/<tail>
+  // 3) 마지막 vN만 채택 → /api/vN/<tail>
   const vers = [...p.matchAll(/\/v(\d+)\//g)];
   if (vers.length > 0) {
-    const last = vers[vers.length - 1][1]; // 숫자만
+    const last = vers[vers.length - 1][1];
     const marker = `/v${last}/`;
     const idx = p.lastIndexOf(marker);
     const tail = p.slice(idx + marker.length);
@@ -90,7 +96,6 @@ module.exports = {
       '/socket.io':   { ...common, ws: true },
 
       // B 스타일 프리픽스 (여기가 핵심)
-      // http-proxy-middleware 버전 차 대비: pathRewrite와 rewrite 둘 다 지정
       '/coreproxy': { 
         ...common, 
         pathRewrite: coreRewriter,
