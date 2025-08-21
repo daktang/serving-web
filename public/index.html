@@ -6,53 +6,102 @@
   <meta name="theme-color" content="#000000" />
   <link rel="icon" type="image/png" id="fevicon" href="images/icons/favicon.png" sizes="32x32">
 
+  <!--
+    config.js: 런타임 설정(window.config)을 주입한다.
+    ※ 순서 중요: 아래 'dev 강제 프록시 스니펫'이 메인 번들보다 먼저 실행되기만 하면 됨.
+    여기서는 jQuery/Socket.IO 로딩 후에 스니펫이 오지만, 앱 번들보다만 앞서면 OK.
+  -->
   <script src="config.js"></script>
+
+  <!--
+    앱 코드가 아주 오래된 jQuery를 사용하므로 그대로 로드한다.
+    (우리가 jQuery.ajax도 후킹해서 절대 URL을 상대 경로로 바꿀 수 있게 함)
+  -->
   <script src="//code.jquery.com/jquery-1.4.2.min.js"></script>
+
+  <!-- 실시간 통신을 쓰는 경우가 있어 Socket.IO도 그대로 로드 -->
   <script src="//cdn.socket.io/4.4.1/socket.io.min.js"></script>
 
-  <!-- dev: portal 절대 URL 중 /api/*, /ext-dit/api/* 는 항상 프록시(상대경로)로 강제 -->
+  <!--
+    ★ 핵심: 개발용 스니펫 (어제 성공했던 버전)
+      - 포털 절대 URL 중에서 /api/*, /ext-dit/api/* 로 시작하는 요청만
+        무조건 상대 경로(/api..., /ext-dit/api...)로 강제 변환한다.
+      - 이렇게 하면 브라우저가 'localhost:3000' 같은 같은-오리진으로 보게 되어 CORS가 아예 발생하지 않는다.
+      - fetch / XHR / jQuery.ajax 3가지 경로를 모두 후킹한다.
+      - 다른 프리픽스(/coreproxy 등)는 건드리지 않는다. (/coreproxy는 webpack 프록시에서 정규화)
+  -->
   <script>
   (function () {
+    // 개발 포털의 정식 호스트명
     var HOST = 'portal.aiserving.dev.aip.domain.net';
+
+    // 이 두 프리픽스만 상대경로로 강제. (detail?role_id=2 같은 /api/*가 대상)
     var PREFIXES = ['/api/', '/ext-dit/api/'];
 
+    /**
+     * 절대/상대 URL 문자열 u를 받아서
+     * - https://portal.../api/... → /api/...
+     * - https://portal.../ext-dit/api/... → /ext-dit/api/...
+     * 로 바꿔준다. (그 외는 그대로 반환)
+     *
+     * 반환값이 원본과 다르면 우리가 재작성에 성공한 것.
+     */
     function toLocal(u) {
-      if (typeof u !== 'string') return u;
+      if (typeof u !== 'string') return u;        // URL이 문자열이 아닐 때는 건드리지 않음
       try {
-        var x = new URL(u, window.location.href); // 절대/상대 모두 허용
+        // new URL()은 절대/상대 모두 파싱해준다 (base는 현재 문서 URL)
+        var x = new URL(u, window.location.href);
+
+        // 대상 호스트(포털)가 아니면 그대로 통과 (외부 리소스/이미지 등 영향 없이)
         if (x.hostname !== HOST) return u;
+
+        // 허용된 프리픽스에 해당하면 상대 경로로 강제
         for (var i = 0; i < PREFIXES.length; i++) {
           var p = PREFIXES[i];
           if (x.pathname.indexOf(p) === 0) {
-            return x.pathname + x.search + x.hash; // → /api/... or /ext-dit/api/...
+            // 상대경로: /api/..., /ext-dit/api/... (쿼리스트링/해시 유지)
+            return x.pathname + x.search + x.hash;
           }
         }
-      } catch (e) {}
+      } catch (e) {
+        // URL 파싱 실패 시(이상한 값) 그냥 원본 유지
+      }
       return u;
     }
 
-    // fetch
+    // -------- fetch 후킹 --------
     if (window.fetch) {
       var _fetch = window.fetch;
       window.fetch = function (input, init) {
+        // input이 문자열이면 URL, Request면 input.url
         var url = (typeof input === 'string') ? input : (input && input.url);
+
         if (url) {
-          var nu = toLocal(url);
-          if (nu !== url) input = (typeof input === 'string') ? nu : new Request(nu, input);
+          var nu = toLocal(url);                                // 절대→상대 변환 시도
+          if (nu !== url) input = (typeof input === 'string')   // 변환되었다면 Request를 새로 만든다
+            ? nu
+            : new Request(nu, input);
         }
+
+        // 인증 쿠키(authservice_session 등)가 붙도록 기본값으로 include
         init = init || {};
         if (init.credentials == null) init.credentials = 'include';
+
         return _fetch(input, init);
       };
     }
 
-    // XHR
+    // -------- XHR(XMLHttpRequest) 후킹 --------
     if (window.XMLHttpRequest) {
       var _open = XMLHttpRequest.prototype.open;
+
+      // open(method, url, ...) 단계에서 URL을 가로채 상대 경로로 변환
       XMLHttpRequest.prototype.open = function (method, url) {
         arguments[1] = toLocal(url);
         return _open.apply(this, arguments);
       };
+
+      // 쿠키 전송을 위해 withCredentials 기본값을 true로
       var _send = XMLHttpRequest.prototype.send;
       XMLHttpRequest.prototype.send = function (body) {
         try { if (this.withCredentials == null) this.withCredentials = true; } catch(e){}
@@ -60,21 +109,28 @@
       };
     }
 
-    // jQuery 1.4.2
+    // -------- jQuery 1.4.2 ajax 후킹 --------
     if (window.jQuery && jQuery.ajax) {
       var _ajax = jQuery.ajax;
       jQuery.ajax = function (opt) {
+        // 문자열 인자 형태($.ajax('/path'))도 지원하므로 옵션으로 변환
         if (typeof opt === 'string') opt = { url: opt };
         opt = opt || {};
+
+        // URL을 상대 경로로 강제 (해당 대상만)
         if (opt.url) opt.url = toLocal(opt.url);
+
+        // XHR과 동일하게 쿠키 동봉
         opt.xhrFields = opt.xhrFields || {};
         if (opt.xhrFields.withCredentials == null) opt.xhrFields.withCredentials = true;
+
         return _ajax.call(jQuery, opt);
       };
     }
   })();
   </script>
 
+  <!-- 페이지 제목 설정 -->
   <script>document.title = window.config.applicationTitle || window.config.applicationName;</script>
 </head>
 <body>
