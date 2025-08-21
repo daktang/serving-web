@@ -6,120 +6,59 @@
   <meta name="theme-color" content="#000000" />
   <link rel="icon" type="image/png" id="fevicon" href="images/icons/favicon.png" sizes="32x32">
 
-  <!-- ★ 최상단: 어떤 번들/스크립트보다 먼저 전체 트래픽을 로컬로 강제 -->
+  <!-- 0) 페이지 로드 전에 SW 등록: portal → localhost 강제 라우팅 -->
   <script>
   (function () {
-    // portal 절대 URL → 상대 경로(/api..., /coreproxy..., /ext-dit/api..., /models..., /serving..., /authservice...)
-    var HOST_RE = /^https?:\/\/portal\.aiserving\.dev\.aip\.domain\.net\/(?:net\/)?(?=(api|coreproxy|ext-dit\/api|models|serving|authservice)\/)/i;
+    if (!('serviceWorker' in navigator)) return;
 
-    function toLocal(u){
-      if (typeof u !== 'string') return u;
-      var v = u.replace(HOST_RE, '/');
-      if (v !== u) return v;
+    // Service Worker 소스코드 (Blob으로 인라인 등록)
+    var SW = `
+self.addEventListener('install', e => self.skipWaiting());
+self.addEventListener('activate', e => e.waitUntil(self.clients.claim()));
 
-      // 문자열 중간에 호스트가 섞여 들어간 케이스도 강제 치환
-      var i = u.indexOf('portal.aiserving.dev.aip.domain.net/');
-      if (i >= 0) {
-        var tail = u.slice(i + 'portal.aiserving.dev.aip.domain.net/'.length);
-        if (tail.indexOf('net/') === 0) tail = tail.slice(4); // '/net/' 오탈자 제거
-        if (/^(api|coreproxy|ext-dit\/api|models|serving|authservice)\//i.test(tail)) return '/' + tail;
+const HOSTS = ['portal.aiserving.dev.aip.domain.net'];
+// /net/ 오탈자도 흡수해 / 로 통일
+const PREFIX = /^(api|coreproxy|ext-dit\\/api|models|serving|authservice)\\//i;
+
+function rewrite(urlStr) {
+  try {
+    const u = new URL(urlStr);
+    // 예: https://portal.../net/api/... → /api/...
+    if (HOSTS.includes(u.hostname)) {
+      let path = u.pathname.replace(/^\\/net\\//, '/'); // '/net/' 제거
+      if (path.startsWith('/')) path = path.slice(1);
+      if (PREFIX.test(path)) {
+        return new URL('/' + path + u.search, self.location.origin).href;
       }
-      return u;
     }
+  } catch {}
+  return null;
+}
 
-    // ---- window.fetch 강제 ----
-    var _fetch = window.fetch;
-    if (_fetch) {
-      Object.defineProperty(window, 'fetch', {
-        configurable: false, writable: false,
-        value: function(input, init){
-          if (typeof input === 'string') input = toLocal(input);
-          else if (input && input.url)   input = new Request(toLocal(input.url), input);
-          init = init || {};
-          if (init.credentials == null) init.credentials = 'include';
-          return _fetch.call(this, input, init);
-        }
-      });
-    }
+self.addEventListener('fetch', (event) => {
+  const req = event.request;
 
-    // ---- XMLHttpRequest 강제 (axios 포함) ----
-    var X = window.XMLHttpRequest;
-    if (X) {
-      var _open = X.prototype.open, _send = X.prototype.send;
-      X.prototype.open = function(method, url){ return _open.call(this, method, toLocal(url)); };
-      X.prototype.send = function(body){ try{ if (this.withCredentials == null) this.withCredentials = true; }catch(e){} return _send.apply(this, arguments); };
-      try { Object.freeze(X.prototype); } catch(_) {}
-    }
+  // navigation/XHR/fetch/이미지 등 모두 커버
+  const target = rewrite(req.url);
+  if (!target) return; // 로컬로 강제할 대상 아님 → 그대로 통과
 
-    // ---- navigator.sendBeacon 강제 ----
-    if (navigator && navigator.sendBeacon) {
-      var _sb = navigator.sendBeacon.bind(navigator);
-      Object.defineProperty(navigator, 'sendBeacon', {
-        configurable: false, writable: false,
-        value: function(url, data){ return _sb(toLocal(url), data); }
-      });
-    }
+  // 원 요청을 보존해 같은 메서드/헤더/바디로 로컬에 재전송
+  const newReq = new Request(target, req);
 
-    // ---- jQuery 1.x ajax 강제 ----
-    function hookJq(){
-      if (!window.jQuery || !jQuery.ajax) return;
-      var _ajax = jQuery.ajax;
-      jQuery.ajax = function(opt){
-        if (typeof opt === 'string') opt = { url: opt };
-        opt = opt || {};
-        if (opt.url) opt.url = toLocal(opt.url);
-        opt.xhrFields = opt.xhrFields || {};
-        if (opt.xhrFields.withCredentials == null) opt.xhrFields.withCredentials = true;
-        return _ajax.call(jQuery, opt);
-      };
-      try { Object.defineProperty(jQuery, 'ajax', { writable: false }); } catch(_){}
-    }
-    hookJq(); window.addEventListener('load', hookJq);
+  event.respondWith(fetch(newReq));
+});
+    `;
 
-    // ---- Web Worker 내부도 강제 (워커가 fetch/XHR 쓰는 경우 대비) ----
-    // 원본 Worker 저장
-    var _Worker = window.Worker;
-    if (_Worker) {
-      window.Worker = function(scriptURL, options){
-        try {
-          var abs = new URL(scriptURL, location.href).href;
-          // 워커 부트스트랩: 먼저 후킹한 뒤 원본 스크립트를 importScripts로 로드
-          var shim =
-`(function(){
-  var HOST_RE = ${HOST_RE};
-  function toLocal(u){
-    if (typeof u !== 'string') return u;
-    var v = u.replace(HOST_RE, '/');
-    if (v !== u) return v;
-    var i = u.indexOf('portal.aiserving.dev.aip.domain.net/');
-    if (i >= 0) {
-      var tail = u.slice(i + 'portal.aiserving.dev.aip.domain.net/'.length);
-      if (tail.indexOf('net/') === 0) tail = tail.slice(4);
-      if (/^(api|coreproxy|ext-dit\\/api|models|serving|authservice)\\//i.test(tail)) return '/' + tail;
-    }
-    return u;
-  }
-  var _f = self.fetch;
-  if (_f) self.fetch = function(i,o){ if (typeof i==='string') i=toLocal(i); else if (i&&i.url) i=new Request(toLocal(i.url), i); o=o||{}; if (o.credentials==null) o.credentials='include'; return _f(i,o); };
-  var X = self.XMLHttpRequest;
-  if (X) {
-    var _open = X.prototype.open, _send = X.prototype.send;
-    X.prototype.open = function(m,u){ return _open.call(this,m,toLocal(u)); };
-    X.prototype.send = function(b){ try{ if (this.withCredentials==null) this.withCredentials=true; }catch(e){} return _send.apply(this, arguments); };
-  }
-  if (self.navigator && self.navigator.sendBeacon) {
-    var _sb = self.navigator.sendBeacon.bind(self.navigator);
-    self.navigator.sendBeacon = function(url, data){ return _sb(toLocal(url), data); };
-  }
-})();\nimportScripts('${abs}');`;
-          var blob = new Blob([shim], {type:'application/javascript'});
-          var url = URL.createObjectURL(blob);
-          return new _Worker(url, options);
-        } catch(e) {
-          return new _Worker(scriptURL, options);
-        }
-      };
-    }
+    const blob = new Blob([SW], { type: 'text/javascript' });
+    const url  = URL.createObjectURL(blob);
+
+    navigator.serviceWorker.register(url, { scope: '/' }).then(() => {
+      // 최초 1회만 리로드해서 SW가 즉시 페이지를 제어하도록
+      if (!sessionStorage.getItem('sw_ready')) {
+        sessionStorage.setItem('sw_ready', '1');
+        location.reload();
+      }
+    }).catch(() => {});
   })();
   </script>
 
