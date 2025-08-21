@@ -16,41 +16,15 @@
     var HOST = 'portal.aiserving.dev.aip.domain.net';
     var PREFIXES = ['/api/', '/ext-dit/api/'];
 
-    // ★ 추가: 일부 코드가 '...domain/net/...' 형태로 URL을 만드는 버그 보정
-    function fixDomainNetBug(u) {
-      if (typeof u !== 'string') return u;
-      // http(s)://portal.../net/<prefix> → /<prefix> 로 강제 변환
-      var re = /^https?:\/\/portal\.aiserving\.dev\.aip\.domain\.net\/net\/(?=(api\/|ext-dit\/api\/))/i;
-      if (re.test(u)) return u.replace(re, '/');
-      return u;
-    }
-
     function toLocal(u) {
       if (typeof u !== 'string') return u;
-      // 0) 오탈자 보정 먼저
-      u = fixDomainNetBug(u);
-
       try {
         var x = new URL(u, window.location.href); // 절대/상대 모두 파싱
-
-        // 1) 정상 호스트 → 지정 prefix면 상대경로로 변환
-        if (x.hostname === HOST) {
-          for (var i = 0; i < PREFIXES.length; i++) {
-            var p = PREFIXES[i];
-            if (x.pathname.indexOf(p) === 0) {
-              return x.pathname + x.search + x.hash; // → /api/... or /ext-dit/api/...
-            }
-          }
-        }
-
-        // 2) 호스트가 '...domain' + 경로가 /net/ 로 시작하는 오탈자 케이스 보정
-        if (x.hostname === 'portal.aiserving.dev.aip.domain' && x.pathname.indexOf('/net/') === 0) {
-          var path = x.pathname.slice(5); // '/net/' 제거
-          for (var j = 0; j < PREFIXES.length; j++) {
-            var pj = PREFIXES[j];
-            if (path.indexOf(pj) === 0) {
-              return '/' + path + x.search + x.hash;
-            }
+        if (x.hostname !== HOST) return u;
+        for (var i = 0; i < PREFIXES.length; i++) {
+          var p = PREFIXES[i];
+          if (x.pathname.indexOf(p) === 0) {
+            return x.pathname + x.search + x.hash; // → /api/... or /ext-dit/api/...
           }
         }
       } catch (e) {}
@@ -63,12 +37,8 @@
       window.fetch = function (input, init) {
         var url = (typeof input === 'string') ? input : (input && input.url);
         if (url) {
-          // ★ 최소 수정: detail 요청이 절대 URL이면 반드시 상대경로로
-          //   (기존 훅 로직 그대로 두고, toLocal(오탈자 보정 포함)만 적용)
           var nu = toLocal(url);
-          if (nu !== url) {
-            input = (typeof input === 'string') ? nu : new Request(nu, input);
-          }
+          if (nu !== url) input = (typeof input === 'string') ? nu : new Request(nu, input);
         }
         init = init || {};
         if (init.credentials == null) init.credentials = 'include';
@@ -80,7 +50,7 @@
     if (window.XMLHttpRequest) {
       var _open = XMLHttpRequest.prototype.open;
       XMLHttpRequest.prototype.open = function (method, url) {
-        arguments[1] = toLocal(fixDomainNetBug(url));
+        arguments[1] = toLocal(url);
         return _open.apply(this, arguments);
       };
       var _send = XMLHttpRequest.prototype.send;
@@ -96,7 +66,7 @@
       jQuery.ajax = function (opt) {
         if (typeof opt === 'string') opt = { url: opt };
         opt = opt || {};
-        if (opt.url) opt.url = toLocal(fixDomainNetBug(opt.url));
+        if (opt.url) opt.url = toLocal(opt.url);
         opt.xhrFields = opt.xhrFields || {};
         if (opt.xhrFields.withCredentials == null) opt.xhrFields.withCredentials = true;
         return _ajax.call(jQuery, opt);
