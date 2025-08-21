@@ -6,66 +6,74 @@
   <meta name="theme-color" content="#000000" />
   <link rel="icon" type="image/png" id="fevicon" href="images/icons/favicon.png" sizes="32x32">
 
-  <!-- 0) 페이지 로드 전에 SW 등록: portal → localhost 강제 라우팅 -->
-  <script>
-  (function () {
-    if (!('serviceWorker' in navigator)) return;
-
-    // Service Worker 소스코드 (Blob으로 인라인 등록)
-    var SW = `
-self.addEventListener('install', e => self.skipWaiting());
-self.addEventListener('activate', e => e.waitUntil(self.clients.claim()));
-
-const HOSTS = ['portal.aiserving.dev.aip.domain.net'];
-// /net/ 오탈자도 흡수해 / 로 통일
-const PREFIX = /^(api|coreproxy|ext-dit\\/api|models|serving|authservice)\\//i;
-
-function rewrite(urlStr) {
-  try {
-    const u = new URL(urlStr);
-    // 예: https://portal.../net/api/... → /api/...
-    if (HOSTS.includes(u.hostname)) {
-      let path = u.pathname.replace(/^\\/net\\//, '/'); // '/net/' 제거
-      if (path.startsWith('/')) path = path.slice(1);
-      if (PREFIX.test(path)) {
-        return new URL('/' + path + u.search, self.location.origin).href;
-      }
-    }
-  } catch {}
-  return null;
-}
-
-self.addEventListener('fetch', (event) => {
-  const req = event.request;
-
-  // navigation/XHR/fetch/이미지 등 모두 커버
-  const target = rewrite(req.url);
-  if (!target) return; // 로컬로 강제할 대상 아님 → 그대로 통과
-
-  // 원 요청을 보존해 같은 메서드/헤더/바디로 로컬에 재전송
-  const newReq = new Request(target, req);
-
-  event.respondWith(fetch(newReq));
-});
-    `;
-
-    const blob = new Blob([SW], { type: 'text/javascript' });
-    const url  = URL.createObjectURL(blob);
-
-    navigator.serviceWorker.register(url, { scope: '/' }).then(() => {
-      // 최초 1회만 리로드해서 SW가 즉시 페이지를 제어하도록
-      if (!sessionStorage.getItem('sw_ready')) {
-        sessionStorage.setItem('sw_ready', '1');
-        location.reload();
-      }
-    }).catch(() => {});
-  })();
-  </script>
-
-  <!-- 기존 순서 유지 -->
   <script src="config.js"></script>
   <script src="//code.jquery.com/jquery-1.4.2.min.js"></script>
   <script src="//cdn.socket.io/4.4.1/socket.io.min.js"></script>
+
+  <!-- dev: portal 절대 URL 중 /api/*, /ext-dit/api/* 는 항상 프록시(상대경로)로 강제 -->
+  <script>
+  (function () {
+    var HOST = 'portal.aiserving.dev.aip.domain.net';
+    var PREFIXES = ['/api/', '/ext-dit/api/'];
+
+    function toLocal(u) {
+      if (typeof u !== 'string') return u;
+      try {
+        var x = new URL(u, window.location.href); // 절대/상대 모두 허용
+        if (x.hostname !== HOST) return u;
+        for (var i = 0; i < PREFIXES.length; i++) {
+          var p = PREFIXES[i];
+          if (x.pathname.indexOf(p) === 0) {
+            return x.pathname + x.search + x.hash; // → /api/... or /ext-dit/api/...
+          }
+        }
+      } catch (e) {}
+      return u;
+    }
+
+    // fetch
+    if (window.fetch) {
+      var _fetch = window.fetch;
+      window.fetch = function (input, init) {
+        var url = (typeof input === 'string') ? input : (input && input.url);
+        if (url) {
+          var nu = toLocal(url);
+          if (nu !== url) input = (typeof input === 'string') ? nu : new Request(nu, input);
+        }
+        init = init || {};
+        if (init.credentials == null) init.credentials = 'include';
+        return _fetch(input, init);
+      };
+    }
+
+    // XHR
+    if (window.XMLHttpRequest) {
+      var _open = XMLHttpRequest.prototype.open;
+      XMLHttpRequest.prototype.open = function (method, url) {
+        arguments[1] = toLocal(url);
+        return _open.apply(this, arguments);
+      };
+      var _send = XMLHttpRequest.prototype.send;
+      XMLHttpRequest.prototype.send = function (body) {
+        try { if (this.withCredentials == null) this.withCredentials = true; } catch(e){}
+        return _send.apply(this, arguments);
+      };
+    }
+
+    // jQuery 1.4.2
+    if (window.jQuery && jQuery.ajax) {
+      var _ajax = jQuery.ajax;
+      jQuery.ajax = function (opt) {
+        if (typeof opt === 'string') opt = { url: opt };
+        opt = opt || {};
+        if (opt.url) opt.url = toLocal(opt.url);
+        opt.xhrFields = opt.xhrFields || {};
+        if (opt.xhrFields.withCredentials == null) opt.xhrFields.withCredentials = true;
+        return _ajax.call(jQuery, opt);
+      };
+    }
+  })();
+  </script>
 
   <script>document.title = window.config.applicationTitle || window.config.applicationName;</script>
 </head>
