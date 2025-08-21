@@ -10,21 +10,41 @@
   <script src="//code.jquery.com/jquery-1.4.2.min.js"></script>
   <script src="//cdn.socket.io/4.4.1/socket.io.min.js"></script>
 
-  <!-- dev 전용: 포털 절대 URL의 /api/*, /ext-dit/api/* 만 로컬 프록시로 강제 -->
+  <!-- dev 전용: 포털 절대 URL을 항상 로컬 프록시로 강제 -->
   <script>
   (function () {
-    var HOST = 'portal.aiserving.dev.aip.domain.net';
-    var PREFIXES = ['/api/', '/ext-dit/api/'];
+    var HOSTS = ['portal.aiserving.dev.aip.domain.net']; // 필요시 추가
+    var PREFIXES = [
+      '/api',             // MUST
+      '/ext-dit/api',
+      '/coreproxy',
+      '/models',
+      '/serving',
+      '/authservice'
+    ];
 
+    function sameHost(h) {
+      if (!h) return false;
+      var host = (h + '').toLowerCase().replace(/:\d+$/, '');
+      for (var i = 0; i < HOSTS.length; i++) {
+        if (host === HOSTS[i].toLowerCase()) return true;
+      }
+      return false;
+    }
+    function pathStartsWith(path, prefix) {
+      if (!path || !prefix) return false;
+      if (!prefix.endsWith('/')) prefix += '/';
+      return path === prefix.slice(0, -1) || path.indexOf(prefix) === 0;
+    }
     function toLocal(u) {
       if (typeof u !== 'string') return u;
       try {
-        var x = new URL(u, window.location.href); // 절대/상대 모두 파싱
-        if (x.hostname !== HOST) return u;
+        var x = new URL(u, window.location.href);
+        if (!sameHost(x.hostname)) return u;
         for (var i = 0; i < PREFIXES.length; i++) {
           var p = PREFIXES[i];
-          if (x.pathname.indexOf(p) === 0) {
-            return x.pathname + x.search + x.hash; // → /api/... or /ext-dit/api/...
+          if (pathStartsWith(x.pathname, p)) {
+            return x.pathname + x.search + x.hash; // /api/... 로 재작성
           }
         }
       } catch (e) {}
@@ -72,6 +92,21 @@
         return _ajax.call(jQuery, opt);
       };
     }
+
+    // axios(있으면)도 강제
+    function hookAxios() {
+      if (!window.axios || !window.axios.interceptors || !window.axios.interceptors.request) return;
+      window.axios.interceptors.request.use(function (config) {
+        if (config && config.url) {
+          var nu = toLocal(config.url);
+          if (nu !== config.url) config.url = nu;
+        }
+        if (!config.withCredentials) config.withCredentials = true;
+        return config;
+      });
+    }
+    hookAxios();
+    window.addEventListener('load', hookAxios); // 번들 로딩 후에도 재훅
   })();
   </script>
 
