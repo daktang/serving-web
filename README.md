@@ -1,48 +1,7 @@
-Request URL
-http://portal.aiserving.dev.aip.domain.net/api/v3/authenticate
-Referrer Policy
-strict-origin-when-cross-origin
-accept
-application/json, text/plain, */*
-content-type
-application/json
-kubeflow-userid
-null
-namespace
-undefined
-project-id
-undefined
-referer
-http://localhost:3000/
-user-agent
-Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/138.0.0.0 Safari/537.36
-x-mlops-action-id
-59
-x-mlops-menuid
-26
-x-mlops-namespace
-x-mlops-target
+[AIP Serve 프로젝트]는 AI Platform Eco System 중 하나 인 Image Registry에 Image 형상을 저장할 수 있는 공간을 부여합니다.
+
+이때, aip-{project name}으로 공간이 부여되며, AIP Serve에서는 ais-{project name}에서 해당 공간을 불러와서 사용할 수 있습니다.
 
 
-Request URL
-https://auth.dev.aip.domain.net/auth/realms/aiplatform/protocol/openid-connect/logout?client_id=serve&post_logout_redirect_uri=http://localhost:3000/after-logout/logout?service=http://localhost/after-logout/logout
-Referrer Policy
-strict-origin-when-cross-origin
-referer
-http://localhost:3000/
-sec-ch-ua
-"Not)A;Brand";v="8", "Chromium";v="138", "Google Chrome";v="138"
-sec-ch-ua-mobile
-?0
-sec-ch-ua-platform
-"Windows"
-upgrade-insecure-requests
-1
-user-agent
-Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/138.0.0.0 Safari/537.36
 
-npx webpack serve --config webpack.local.js -- stats verbose --log-level verbose
-Failed to load ./.env.
-[webpack-cli] Invalid configuration object. Webpack has been initialized using a configuration object that does not match the API schema.
- - configuration.entry should not contain the item 'verbose' twice.
-   -> All modules are loaded upon startup. The last one is exported.
+따라서, ais-{project name} 공간에서 사용할 Image들은 aip-{project name}에 있어야 Pull 권한으로 사용이 가능해집니다.
