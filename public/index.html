@@ -13,38 +13,45 @@
   <!-- dev 전용: 포털 절대 URL을 항상 로컬 프록시로 강제 -->
   <script>
   (function () {
-    var HOSTS = ['portal.aiserving.dev.aip.domain.net']; // 필요시 추가
-    var PREFIXES = [
-      '/api',             // MUST
-      '/ext-dit/api',
-      '/coreproxy',
-      '/models',
-      '/serving',
-      '/authservice'
-    ];
+    // 실제 포털 호스트(정상 케이스)
+    var HOST = 'portal.aiserving.dev.aip.domain.net';
+    // 앱에서 쓰는 프리픽스들
+    var PREFIXES = ['/api', '/ext-dit/api', '/coreproxy', '/models', '/serving', '/authservice'];
 
-    function sameHost(h) {
-      if (!h) return false;
-      var host = (h + '').toLowerCase().replace(/:\d+$/, '');
-      for (var i = 0; i < HOSTS.length; i++) {
-        if (host === HOSTS[i].toLowerCase()) return true;
-      }
-      return false;
+    // 1) 문자열 치환으로 가장 먼저 강제 변환
+    function hardRewrite(u) {
+      if (typeof u !== 'string') return u;
+      // 정상: https?://portal.../(net/)?<prefix> → /<prefix>
+      // 오탈자 케이스(호스트 뒤에 /net/ 끼어든 경우)도 함께 흡수
+      var re = /^https?:\/\/portal\.aiserving\.dev\.aip\.domain\.net\/(?:net\/)?(?=(api|ext-dit\/api|coreproxy|models|serving|authservice)\/)/i;
+      var nu = u.replace(re, '/');
+      return nu;
     }
+
     function pathStartsWith(path, prefix) {
       if (!path || !prefix) return false;
       if (!prefix.endsWith('/')) prefix += '/';
       return path === prefix.slice(0, -1) || path.indexOf(prefix) === 0;
     }
+
+    // 2) URL 파싱 기반 보정 (문자열 치환으로 못 잡은 경우 보완)
     function toLocal(u) {
       if (typeof u !== 'string') return u;
+      var first = hardRewrite(u);
+      if (first !== u) return first;
       try {
-        var x = new URL(u, window.location.href);
-        if (!sameHost(x.hostname)) return u;
-        for (var i = 0; i < PREFIXES.length; i++) {
-          var p = PREFIXES[i];
-          if (pathStartsWith(x.pathname, p)) {
-            return x.pathname + x.search + x.hash; // /api/... 로 재작성
+        var x = new URL(u, window.location.href); // 절대/상대 모두 파싱
+        // host가 이상하게 '...domain' 이고 path가 '/net/...' 로 시작해도 보정
+        if (x.hostname === 'portal.aiserving.dev.aip.domain' && x.pathname.indexOf('/net/') === 0) {
+          var p = x.pathname.replace(/^\/net\//, '/');
+          return p + x.search + x.hash;
+        }
+        // 정상 host면 prefix 매칭 시 상대경로로 강제
+        if (x.hostname === HOST) {
+          for (var i = 0; i < PREFIXES.length; i++) {
+            if (pathStartsWith(x.pathname, PREFIXES[i])) {
+              return x.pathname + x.search + x.hash;
+            }
           }
         }
       } catch (e) {}
@@ -55,10 +62,12 @@
     if (window.fetch) {
       var _fetch = window.fetch;
       window.fetch = function (input, init) {
-        var url = (typeof input === 'string') ? input : (input && input.url);
-        if (url) {
-          var nu = toLocal(url);
-          if (nu !== url) input = (typeof input === 'string') ? nu : new Request(nu, input);
+        if (typeof input === 'string') {
+          input = hardRewrite(input);
+          input = toLocal(input);
+        } else if (input && input.url) {
+          var nu = toLocal(input.url);
+          if (nu !== input.url) input = new Request(nu, input);
         }
         init = init || {};
         if (init.credentials == null) init.credentials = 'include';
@@ -70,7 +79,7 @@
     if (window.XMLHttpRequest) {
       var _open = XMLHttpRequest.prototype.open;
       XMLHttpRequest.prototype.open = function (method, url) {
-        arguments[1] = toLocal(url);
+        arguments[1] = toLocal(hardRewrite(url));
         return _open.apply(this, arguments);
       };
       var _send = XMLHttpRequest.prototype.send;
@@ -86,19 +95,20 @@
       jQuery.ajax = function (opt) {
         if (typeof opt === 'string') opt = { url: opt };
         opt = opt || {};
-        if (opt.url) opt.url = toLocal(opt.url);
+        if (opt.url) opt.url = toLocal(hardRewrite(opt.url));
         opt.xhrFields = opt.xhrFields || {};
         if (opt.xhrFields.withCredentials == null) opt.xhrFields.withCredentials = true;
         return _ajax.call(jQuery, opt);
       };
     }
 
-    // axios(있으면)도 강제
+    // axios (있으면)
     function hookAxios() {
       if (!window.axios || !window.axios.interceptors || !window.axios.interceptors.request) return;
       window.axios.interceptors.request.use(function (config) {
         if (config && config.url) {
-          var nu = toLocal(config.url);
+          var s = hardRewrite(config.url);
+          var nu = toLocal(s);
           if (nu !== config.url) config.url = nu;
         }
         if (!config.withCredentials) config.withCredentials = true;
@@ -106,7 +116,7 @@
       });
     }
     hookAxios();
-    window.addEventListener('load', hookAxios); // 번들 로딩 후에도 재훅
+    window.addEventListener('load', hookAxios);
   })();
   </script>
 
