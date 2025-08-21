@@ -98,6 +98,7 @@ const common = {
   headers: { Host: PORTAL },                // 명시적으로 Host 지정
   cookieDomainRewrite: { [PORTAL]: '' },    // Set-Cookie의 Domain=portal... → 빈 값(현재 오리진)으로 재작성
   onProxyRes: rewriteLocationToLocal,       // 30x 리다이렉트 Location을 로컬로 고정
+  logLevel: 'debug',
 };
 
 module.exports = {
@@ -140,6 +141,33 @@ module.exports = {
         secure: false,
         pathRewrite: { '^/kubeflowproxy': '/' },
         cookieDomainRewrite: { [KUBEFLOW]: '' },
+        logLevel: 'debug',
+      },
+
+      // 5) 캐치올 프록시: portal 도메인으로 직접 요청하는 경우 대비
+      '**': {
+        target: `https://${PORTAL}`,
+        changeOrigin: true,
+        secure: false,
+        headers: { Host: PORTAL },
+        cookieDomainRewrite: { [PORTAL]: '' },
+        onProxyRes: rewriteLocationToLocal,
+        context: function(pathname, req) {
+          console.log(`[PROXY DEBUG] Checking request: ${pathname}, Host: ${req.headers.host}, Referer: ${req.headers.referer}`);
+          const requestHost = req.headers.host;
+          const refererHost = req.headers.referer ? new URL(req.headers.referer).hostname : null;
+          const shouldProxy = requestHost === PORTAL || refererHost === PORTAL;
+          console.log(`[PROXY DEBUG] Should proxy: ${shouldProxy}`);
+          return shouldProxy;
+        },
+        pathRewrite: function (path, req) {
+          console.log(`[PROXY DEBUG] Original path: ${path}`);
+          const portalRegex = new RegExp(`^https?:\/\/${PORTAL}`);
+          const rewrittenPath = path.replace(portalRegex, '');
+          console.log(`[PROXY DEBUG] Rewritten path: ${rewrittenPath}`);
+          return rewrittenPath;
+        },
+        logLevel: 'debug',
       },
     },
   },
