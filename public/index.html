@@ -10,95 +10,32 @@
   <script src="//code.jquery.com/jquery-1.4.2.min.js"></script>
   <script src="//cdn.socket.io/4.4.1/socket.io.min.js"></script>
 
-  <!-- dev 전용: 포털 절대 URL을 항상 로컬 프록시로 강제 (authenticate는 건드리지 않음) -->
+  <!-- dev 전용: 포털 절대 URL을 항상 로컬 프록시로 강제 (authenticate는 프록시가 처리. webpack은 그대로 둠) -->
   <script>
   (function () {
     var HOST = 'portal.aiserving.dev.aip.domain.net';
-    // 실제로 쓰는 프리픽스 전부 포함: detail(/api), resource-summary(/coreproxy) 모두 커버
-    var PREFIXES = ['/api/', '/ext-dit/api/', '/coreproxy/', '/models/', '/serving/', '/authservice/'];
 
-    // 일부 코드가 '.../domain/net/...' 식으로 만드는 오탈자 보정
-    function fixDomainNetBug(u) {
+    // portal 도메인으로 향하는 /api, /coreproxy 등은 전부 localhost 상대경로로 강제
+    // 오탈자 '.../domain/net/...' 케이스 포함
+    var ABS_RE = /^https?:\/\/portal\.aiserving\.dev\.aip\.domain\.net\/(?:(?:net\/)?)(?=(api\/|coreproxy\/|ext-dit\/api\/|models\/|serving\/|authservice\/))/i;
+    var ABS_DOMAIN_NET_HOST = 'portal.aiserving.dev.aip.domain'; // host에 .net 빠진 케이스
+
+    function hardRewrite(u) {
       if (typeof u !== 'string') return u;
-      // http(s)://portal.../net/<prefix> → /<prefix>
-      var re = /^https?:\/\/portal\.aiserving\.dev\.aip\.domain\.net\/net\/(?=(api\/|ext-dit\/api\/|coreproxy\/|models\/|serving\/|authservice\/))/i;
-      return u.replace(re, '/');
+      // https://portal.../(net/)?<prefix>...  →  /<prefix>...
+      var v = u.replace(ABS_RE, '/');
+      if (v !== u) return v;
+      // http(s)://portal.aiserving.dev.aip.domain/net/<prefix>... → /<prefix>...
+      try {
+        var x = new URL(u, window.location.href);
+        if (x.hostname === ABS_DOMAIN_NET_HOST && x.pathname.indexOf('/net/') === 0) {
+          return x.pathname.slice(4) + x.search + x.hash; // '/net' 제거 → '/api...'
+        }
+      } catch (_) {}
+      return u;
     }
 
     function toLocal(u) {
       if (typeof u !== 'string') return u;
-      u = fixDomainNetBug(u);
-      try {
-        var x = new URL(u, window.location.href); // 절대/상대 모두 파싱
-        if (x.hostname === HOST) {
-          for (var i = 0; i < PREFIXES.length; i++) {
-            var p = PREFIXES[i];
-            if (x.pathname.indexOf(p) === 0) {
-              // → /api/... , /coreproxy/... 등 상대 경로로 강제 (localhost:3000 프록시 경유)
-              return x.pathname + x.search + x.hash;
-            }
-          }
-        }
-        // 희귀 케이스: 호스트가 '.domain'이고 path가 '/net/'로 시작하는 경우도 상대 경로로 보정
-        if (x.hostname === 'portal.aiserving.dev.aip.domain' && x.pathname.indexOf('/net/') === 0) {
-          var rest = x.pathname.slice(5); // '/net/' 제거
-          for (var j = 0; j < PREFIXES.length; j++) {
-            var pj = PREFIXES[j];
-            if (rest.indexOf(pj) === 0) return '/' + rest + x.search + x.hash;
-          }
-        }
-      } catch (e) {}
-      return u;
-    }
-
-    // fetch 훅
-    if (window.fetch) {
-      var _fetch = window.fetch;
-      window.fetch = function (input, init) {
-        var url = (typeof input === 'string') ? input : (input && input.url);
-        if (url) {
-          var nu = toLocal(url);
-          if (nu !== url) input = (typeof input === 'string') ? nu : new Request(nu, input);
-        }
-        init = init || {};
-        if (init.credentials == null) init.credentials = 'include';
-        return _fetch(input, init);
-      };
-    }
-
-    // XHR 훅 (axios 포함 모든 XHR 경로 커버)
-    if (window.XMLHttpRequest) {
-      var _open = XMLHttpRequest.prototype.open;
-      XMLHttpRequest.prototype.open = function (method, url) {
-        arguments[1] = toLocal(fixDomainNetBug(url));
-        return _open.apply(this, arguments);
-      };
-      var _send = XMLHttpRequest.prototype.send;
-      XMLHttpRequest.prototype.send = function (body) {
-        try { if (this.withCredentials == null) this.withCredentials = true; } catch(e){}
-        return _send.apply(this, arguments);
-      };
-    }
-
-    // jQuery 1.4.2 훅
-    if (window.jQuery && jQuery.ajax) {
-      var _ajax = jQuery.ajax;
-      jQuery.ajax = function (opt) {
-        if (typeof opt === 'string') opt = { url: opt };
-        opt = opt || {};
-        if (opt.url) opt.url = toLocal(fixDomainNetBug(opt.url));
-        opt.xhrFields = opt.xhrFields || {};
-        if (opt.xhrFields.withCredentials == null) opt.xhrFields.withCredentials = true;
-        return _ajax.call(jQuery, opt);
-      };
-    }
-  })();
-  </script>
-
-  <script>document.title = window.config.applicationTitle || window.config.applicationName;</script>
-</head>
-<body>
-  <noscript>You need to enable JavaScript to run this app.</noscript>
-  <div id="root" class="grip-resizable"></div>
-</body>
-</html>
+      var before = u;
+      var nu
