@@ -15,7 +15,11 @@
 
     // URL을 받아 portal 호스트면 localhost:3000으로 치환하여 "절대 URL"로 반환
     function forceLocal(urlLike) {
-      if (!urlLike) return urlLike;
+      console.log('[forceLocal] Input URL:', urlLike); // Log input
+      if (!urlLike) {
+        console.log('[forceLocal] Input URL is null/undefined.');
+        return urlLike;
+      }
 
       // 문자열 전체를 절대 URL로 만들어 검사
       try {
@@ -25,28 +29,37 @@
         if (u.hostname === PORTAL_MAIN || u.hostname === PORTAL_OOPS) {
           var path = u.pathname;
           if (u.hostname === PORTAL_OOPS && path.indexOf('/net/') === 0) path = path.slice(4); // '/net' 제거
-          return LOCAL + path + u.search + u.hash;
+          const rewrittenUrl = LOCAL + path + u.search + u.hash;
+          console.log('[forceLocal] Rewritten URL (URL object):', rewrittenUrl); // Log rewritten URL
+          return rewrittenUrl;
         }
-      } catch (_) { /* 무시 */ }
+      } catch (e) {
+        console.error('[forceLocal] URL parsing error:', e, 'for URL:', urlLike); // Log parsing errors
+      }
 
       // 문자열 중간에 포함된 경우도 느슨하게 치환
       if (typeof urlLike === 'string') {
         // 정상 호스트
         if (urlLike.indexOf(PORTAL_MAIN) >= 0) {
-          return urlLike
+          const rewrittenUrl = urlLike
             .replace(new RegExp('^https?://' + PORTAL_MAIN, 'i'), LOCAL)
             .replace(new RegExp('^//' + PORTAL_MAIN, 'i'), LOCAL)
             .replace(new RegExp('https?://' + PORTAL_MAIN, 'gi'), LOCAL)
             .replace(new RegExp('//' + PORTAL_MAIN, 'gi'), LOCAL);
+          console.log('[forceLocal] Rewritten URL (string replace):', rewrittenUrl); // Log rewritten URL
+          return rewrittenUrl;
         }
         // 오탈자 호스트 + '/net/' 보정
         if (urlLike.indexOf(PORTAL_OOPS + '/net/') >= 0) {
-          return urlLike
+          const rewrittenUrl = urlLike
             .replace(new RegExp('^https?://' + PORTAL_OOPS + '/net/', 'i'), LOCAL + '/')
             .replace(new RegExp('^//' + PORTAL_OOPS + '/net/', 'i'), LOCAL + '/');
+          console.log('[forceLocal] Rewritten URL (oops string replace):', rewrittenUrl); // Log rewritten URL
+          return rewrittenUrl;
         }
       }
 
+      console.log('[forceLocal] No rewrite needed, returning original:', urlLike); // Log if no rewrite
       return urlLike;
     }
 
@@ -56,6 +69,7 @@
       Object.defineProperty(window, 'fetch', {
         configurable: false, writable: false,
         value: function(input, init) {
+          console.log('[fetch hook] Original input:', input); // Log fetch input
           if (typeof input === 'string') {
             input = forceLocal(input);
           } else if (input && input.url) {
@@ -74,6 +88,7 @@
     if (X) {
       var _open = X.prototype.open, _send = X.prototype.send;
       X.prototype.open = function(method, url) {
+        console.log('[XHR hook] Original URL for open:', url); // Log XHR open URL
         return _open.call(this, method, forceLocal(url), arguments[2], arguments[3], arguments[4]);
       };
       X.prototype.send = function(body) {
