@@ -32,10 +32,12 @@
       // 문자열 중간에 포함된 경우도 느슨하게 치환
       if (typeof urlLike === 'string') {
         // 정상 호스트
-        if (urlLike.indexOf(PORTAL_MAIN + '/') >= 0) {
+        if (urlLike.indexOf(PORTAL_MAIN) >= 0) {
           return urlLike
             .replace(new RegExp('^https?://' + PORTAL_MAIN, 'i'), LOCAL)
-            .replace(new RegExp('^//' + PORTAL_MAIN, 'i'), LOCAL + '/');
+            .replace(new RegExp('^//' + PORTAL_MAIN, 'i'), LOCAL)
+            .replace(new RegExp('https?://' + PORTAL_MAIN, 'gi'), LOCAL)
+            .replace(new RegExp('//' + PORTAL_MAIN, 'gi'), LOCAL);
         }
         // 오탈자 호스트 + '/net/' 보정
         if (urlLike.indexOf(PORTAL_OOPS + '/net/') >= 0) {
