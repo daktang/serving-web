@@ -9,6 +9,14 @@
   <!-- 가장 먼저: portal → http://localhost:3000 로 무조건 치환 (API/폼/네비/iframe 대부분 커버) -->
   <script>
   (function () {
+    // 디버그 플래그 설정 - 필요한 로그만 활성화
+    window.debugFlags = {
+      forceLocal: true,    // forceLocal 함수 로그
+      fetch: true,         // fetch 훅 로그
+      xhr: true,           // XMLHttpRequest 훅 로그
+      detail: true         // detail 요청 특별 추적
+    };
+
     var PORTAL_MAIN = 'portal.aiserving.dev.aip.domain.net';
     var PORTAL_OOPS = 'portal.aiserving.dev.aip.domain'; // 드문 오탈자(host 뒤에 /net/ 붙는 케이스)
     var LOCAL = 'http://localhost:3000';
@@ -30,11 +38,15 @@
           var path = u.pathname;
           if (u.hostname === PORTAL_OOPS && path.indexOf('/net/') === 0) path = path.slice(4); // '/net' 제거
           const rewrittenUrl = LOCAL + path + u.search + u.hash;
-          console.log('[forceLocal] Rewritten URL (URL object):', rewrittenUrl); // Log rewritten URL
+          if (window.debugFlags && window.debugFlags.forceLocal) {
+            console.log('[DEBUG-FORCELOCAL] Rewritten URL (URL object):', rewrittenUrl);
+          }
           return rewrittenUrl;
         }
       } catch (e) {
-        console.error('[forceLocal] URL parsing error:', e, 'for URL:', urlLike); // Log parsing errors
+        if (window.debugFlags && window.debugFlags.forceLocal) {
+          console.error('[DEBUG-FORCELOCAL] URL parsing error:', e, 'for URL:', urlLike);
+        }
       }
 
       // 문자열 중간에 포함된 경우도 느슨하게 치환
@@ -46,7 +58,9 @@
             .replace(new RegExp('^//' + PORTAL_MAIN, 'i'), LOCAL)
             .replace(new RegExp('https?://' + PORTAL_MAIN, 'gi'), LOCAL)
             .replace(new RegExp('//' + PORTAL_MAIN, 'gi'), LOCAL);
-          console.log('[forceLocal] Rewritten URL (string replace):', rewrittenUrl); // Log rewritten URL
+          if (window.debugFlags && window.debugFlags.forceLocal) {
+            console.log('[DEBUG-FORCELOCAL] Rewritten URL (string replace):', rewrittenUrl);
+          }
           return rewrittenUrl;
         }
         // 오탈자 호스트 + '/net/' 보정
@@ -54,12 +68,20 @@
           const rewrittenUrl = urlLike
             .replace(new RegExp('^https?://' + PORTAL_OOPS + '/net/', 'i'), LOCAL + '/')
             .replace(new RegExp('^//' + PORTAL_OOPS + '/net/', 'i'), LOCAL + '/');
-          console.log('[forceLocal] Rewritten URL (oops string replace):', rewrittenUrl); // Log rewritten URL
+          if (window.debugFlags && window.debugFlags.forceLocal) {
+            console.log('[DEBUG-FORCELOCAL] Rewritten URL (oops string replace):', rewrittenUrl);
+          }
           return rewrittenUrl;
         }
+    if (window.debugFlags && window.debugFlags.forceLocal) {
+      console.log('[DEBUG-FORCELOCAL] Input URL:', urlLike);
+      if (window.debugFlags && window.debugFlags.forceLocal) {
+        console.log('[DEBUG-FORCELOCAL] No rewrite needed, returning original:', urlLike);
       }
 
-      console.log('[forceLocal] No rewrite needed, returning original:', urlLike); // Log if no rewrite
+      if (window.debugFlags && window.debugFlags.forceLocal) {
+        console.log('[DEBUG-FORCELOCAL] Input URL is null/undefined.');
+      }
       return urlLike;
     }
 
@@ -69,7 +91,9 @@
       Object.defineProperty(window, 'fetch', {
         configurable: false, writable: false,
         value: function(input, init) {
-          console.log('[fetch hook] Original input:', input); // Log fetch input
+          if (window.debugFlags && window.debugFlags.fetch) {
+            console.log('[DEBUG-FETCH] Original input:', input);
+          }
           if (typeof input === 'string') {
             input = forceLocal(input);
           } else if (input && input.url) {
@@ -88,7 +112,9 @@
     if (X) {
       var _open = X.prototype.open, _send = X.prototype.send;
       X.prototype.open = function(method, url) {
-        console.log('[XHR hook] Original URL for open:', url); // Log XHR open URL
+        if (window.debugFlags && window.debugFlags.xhr) {
+          console.log('[DEBUG-XHR] Original URL for open:', url);
+        }
         return _open.call(this, method, forceLocal(url), arguments[2], arguments[3], arguments[4]);
       };
       X.prototype.send = function(body) {
