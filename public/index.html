@@ -1,188 +1,122 @@
-<!DOCTYPE html>
-<html lang="en" dir="ltr">
-<head>
-  <meta charset="utf-8" />
-  <meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no" />
-  <meta name="theme-color" content="#000000" />
-  <link rel="icon" type="image/png" id="fevicon" href="images/icons/favicon.png" sizes="32x32">
-
-  <!-- 가장 먼저: portal → http://localhost:3000 로 무조건 치환 (API/폼/네비/iframe 대부분 커버) -->
-  <script>
-  (function () {
-    var PORTAL_MAIN = 'portal.aiserving.dev.aip.domain.net';
-    var PORTAL_OOPS = 'portal.aiserving.dev.aip.domain'; // 드문 오탈자(host 뒤에 /net/ 붙는 케이스)
-    var LOCAL = 'http://localhost:3000';
-
-    function forceLocal(urlLike) {
-      if (!urlLike) {
-        console.log('[forceLocal] Input URL is null/undefined.');
-        return urlLike;
-      }
-
-      // 문자열 전체를 절대 URL로 만들어 검사
-      try {
-        var u = new URL(String(urlLike), location.href);
-
-        // host가 portal이면 path에 '/net/' 오탈자가 앞에 붙은 것도 제거
-        if (u.hostname === PORTAL_MAIN || u.hostname === PORTAL_OOPS) {
-          var path = u.pathname;
-          if (u.hostname === PORTAL_OOPS && path.indexOf('/net/') === 0) path = path.slice(4); // '/net' 제거
-          const rewrittenUrl = LOCAL + path + u.search + u.hash;
-          console.log('[forceLocal] Rewritten URL (URL object):', rewrittenUrl);
-          return rewrittenUrl;
-        }
-      } catch (e) {
-        console.error('[forceLocal] URL parsing error:', e, 'for URL:', urlLike);
-      }
-
-      // 문자열 중간에 포함된 경우도 느슨하게 치환
-      if (typeof urlLike === 'string') {
-        // 정상 호스트
-        if (urlLike.indexOf(PORTAL_MAIN) >= 0) {
-          const rewrittenUrl = urlLike
-            .replace(new RegExp('^https?://' + PORTAL_MAIN, 'i'), LOCAL)
-            .replace(new RegExp('^//' + PORTAL_MAIN, 'i'), LOCAL)
-            .replace(new RegExp('https?://' + PORTAL_MAIN, 'gi'), LOCAL)
-            .replace(new RegExp('//' + PORTAL_MAIN, 'gi'), LOCAL);
-          console.log('[forceLocal] Rewritten URL (string replace):', rewrittenUrl);
-          return rewrittenUrl;
-        }
-        // 오탈자 호스트 + '/net/' 보정
-        if (urlLike.indexOf(PORTAL_OOPS + '/net/') >= 0) {
-          const rewrittenUrl = urlLike
-            .replace(new RegExp('^https?://' + PORTAL_OOPS + '/net/', 'i'), LOCAL + '/')
-            .replace(new RegExp('^//' + PORTAL_OOPS + '/net/', 'i'), LOCAL + '/');
-          console.log('[forceLocal] Rewritten URL (oops string replace):', rewrittenUrl);
-          return rewrittenUrl;
-        }
-      }
-      console.log('[forceLocal] No rewrite needed, returning original:', urlLike);
-      return urlLike;
-    }
-
-    // fetch
-    var _fetch = window.fetch;
-    if (_fetch) {
-      Object.defineProperty(window, 'fetch', {
-        configurable: false, writable: false,
-        value: function(input, init) {
-          console.log('[fetch hook] Original input:', input);
-          if (typeof input === 'string') {
-            input = forceLocal(input);
-          } else if (input && input.url) {
-            var nu = forceLocal(input.url);
-            if (nu !== input.url) input = new Request(nu, input);
-          }
-          init = init || {};
-          if (init.credentials == null) init.credentials = 'include';
-          return _fetch.call(this, input, init);
-        }
-      });
-    }
-
-    // XMLHttpRequest (axios 등)
-    var X = window.XMLHttpRequest;
-    if (X) {
-      var _open = X.prototype.open, _send = X.prototype.send;
-      X.prototype.open = function(method, url) {
-        console.log('[XHR hook] Original URL for open:', url);
-        return _open.call(this, method, forceLocal(url), arguments[2], arguments[3], arguments[4]);
-      };
-      X.prototype.send = function(body) {
-        try { if (this.withCredentials == null) this.withCredentials = true; } catch(e){}
-        return _send.apply(this, arguments);
-      };
-      try { Object.freeze(X.prototype); } catch(e){}
-    }
-
-    // jQuery.ajax
-    function hookJq(){
-      if (!window.jQuery || !jQuery.ajax) return;
-      var _ajax = jQuery.ajax;
-      jQuery.ajax = function(opt){
-        if (typeof opt === 'string') opt = { url: opt };
-        opt = opt || {};
-        if (opt.url) opt.url = forceLocal(opt.url);
-        opt.xhrFields = opt.xhrFields || {};
-        if (opt.xhrFields.withCredentials == null) opt.xhrFields.withCredentials = true;
-        return _ajax.call(jQuery, opt);
-      };
-      try { Object.defineProperty(jQuery, 'ajax', { writable: false }); } catch(e){}
-    }
-    hookJq(); window.addEventListener('load', hookJq);
-
-    // navigator.sendBeacon
-    if (navigator && navigator.sendBeacon) {
-      var _sb = navigator.sendBeacon.bind(navigator);
-      Object.defineProperty(navigator, 'sendBeacon', {
-        configurable: false, writable: false,
-        value: function(url, data){ return _sb(forceLocal(url), data); }
-      });
-    }
-
-    // EventSource(SSE)
-    if (window.EventSource) {
-      var _ES = window.EventSource;
-      window.EventSource = function(url, cfg){ return new _ES(forceLocal(url), cfg); };
-    }
-
-    // WebSocket (ws → http 치환 규칙: ws(s) 스킴 보존하되 호스트만 교체)
-    if (window.WebSocket) {
-      var _WS = window.WebSocket;
-      window.WebSocket = function(url, proto) {
-        try {
-          var u = new URL(String(url), location.href);
-          if (u.hostname === PORTAL_MAIN || u.hostname === PORTAL_OOPS) {
-            var wsOrigin = (u.protocol === 'wss:') ? 'wss://' : 'ws://';
-            var path = u.pathname;
-            if (u.hostname === PORTAL_OOPS && path.indexOf('/net/') === 0) path = path.slice(4);
-            url = wsOrigin + 'localhost:3000' + path + u.search + u.hash;
-          }
-        } catch(_){}
-        return new _WS(url, proto);
-      };
-    }
-
-    // 폼/앵커/iframe/src/href/action 같은 DOM 속성도 치환 (네비/submit로 빠지는 것들)
-    function rewriteAttr(node, attr) {
-      try {
-        var val = node.getAttribute(attr);
-        if (!val) return;
-        var nu = forceLocal(val);
-        if (nu !== val) node.setAttribute(attr, nu);
-      } catch(e){}
-    }
-    var mo = new MutationObserver(function(muts){
-      for (var i=0;i<muts.length;i++){
-        var m = muts[i];
-        if (m.type === 'attributes') {
-          if (m.attributeName === 'href' || m.attributeName === 'src' || m.attributeName === 'action') {
-            rewriteAttr(m.target, m.attributeName);
-          }
-        } else if (m.type === 'childList') {
-          m.addedNodes && m.addedNodes.forEach(function(n){
-            if (n && n.nodeType === 1) {
-              rewriteAttr(n, 'href'); rewriteAttr(n, 'src'); rewriteAttr(n, 'action');
-              var q = n.querySelectorAll ? n.querySelectorAll('[href],[src],[action]') : [];
-              for (var j=0;j<q.length;j++){ rewriteAttr(q[j], 'href'); rewriteAttr(q[j], 'src'); rewriteAttr(q[j], 'action'); }
-            }
-          });
-        }
-      }
-    });
-    mo.observe(document.documentElement, { attributes:true, attributeFilter:['href','src','action'], subtree:true, childList:true });
-  })();
-  </script>
-
-  <!-- 나머지 기존 로딩 그대로 -->
-  <script src="config.js"></script>
-  <script src="//code.jquery.com/jquery-1.4.2.min.js"></script>
-  <script src="//cdn.socket.io/4.4.1/socket.io.min.js"></script>
-
-  <script>document.title = (window.config && (window.config.applicationTitle || window.config.applicationName)) || 'App';</script>
-</head>
-<body>
-  <noscript>You need to enable JavaScript to run this app.</noscript>
-  <div id="root" class="grip-resizable"></div>
-</body>
-</html>
+[forceLocal] No rewrite needed, returning original: /src_shared_components_Extension_index_js.css
+(index):59 [forceLocal] No rewrite needed, returning original: /src_shared_components_Extension_index_js.new.js
+(index):88 [XHR hook] Original URL for open: //portal.aiserving.dev.aip.domain.net/api/v2/check_user_session
+(index):31 [forceLocal] Rewritten URL (URL object): http://localhost:3000/api/v2/check_user_session
+(index):59 [forceLocal] No rewrite needed, returning original: /serving/model-server?ns=ais-backend-test&uId=2&projId=84&isAdmin=&projName=backend-test&accName=syun7.kim&roleId=2&isApiCallAllowed=true
+VM1037 680578:94 i18next: languageChanged en
+VM1037 680578:94 i18next: initialized {debug: true, initImmediate: true, ns: Array(1), defaultNS: 'translations', fallbackLng: Array(1), …}
+VM252 454201:89 react-i18next:: It seems you are still using the old wait option, you may migrate to the new useSuspense behaviour.
+warn @ VM252 454201:89
+warnOnce @ VM252 454201:100
+useTranslation @ VM252 454201:206
+I18nextWithTranslation @ VM252 454201:302
+Ch @ VM222 364448:157
+ck @ VM222 364448:267
+bk @ VM222 364448:250
+ak @ VM222 364448:250
+Tj @ VM222 364448:250
+Lj @ VM222 364448:243
+Jg @ VM222 364448:237
+lk @ VM222 364448:285
+eval @ VM222 364448:289
+Xj @ VM222 364448:244
+tk @ VM222 364448:289
+exports.render @ VM222 364448:296
+eval @ VM217 384722:2155
+384722 @ VM215 main.74446ecf204edfbe76af.bundle.js:1
+t @ VM214 manifest.3579ba24a68434cbb04e.bundle.js:1
+(anonymous) @ VM215 main.74446ecf204edfbe76af.bundle.js:1
+t.O @ VM214 manifest.3579ba24a68434cbb04e.bundle.js:1
+(anonymous) @ VM215 main.74446ecf204edfbe76af.bundle.js:1
+a @ VM214 manifest.3579ba24a68434cbb04e.bundle.js:1
+(anonymous) @ VM215 main.74446ecf204edfbe76af.bundle.js:1Understand this warning
+model-server?ns=ais-backend-test&uId=2&projId=84&isAdmin=&projName=backend-test&accName=syun7.kim&r…:1 Access to XMLHttpRequest at 'http://portal.aiserving.dev.aip.domain.net/api/v2/menu/side-menu/detail?role_id=3' from origin 'http://localhost:3000' has been blocked by CORS policy: Response to preflight request doesn't pass access control check: Redirect is not allowed for a preflight request.Understand this error
+VM396 71257:2590  GET http://portal.aiserving.dev.aip.domain.net/api/v2/menu/side-menu/detail?role_id=3 net::ERR_FAILED
+dispatchXhrRequest @ VM396 71257:2590
+xhr @ VM396 71257:2381
+dispatchRequest @ VM396 71257:2724
+Promise.then
+request @ VM396 71257:3081
+Axios.<computed> @ VM396 71257:3131
+wrap @ VM396 71257:21
+httpRequest @ VM395 151419:403
+getMenuList @ VM340 956015:4113
+next @ VM341 530797:1171
+proc @ VM341 530797:1122
+eval @ VM341 530797:603
+immediately @ VM341 530797:96
+runForkEffect @ VM341 530797:602
+runEffect @ VM341 530797:1218
+digestEffect @ VM341 530797:1285
+next @ VM341 530797:1175
+currCb @ VM341 530797:1265
+takeCb @ VM341 530797:521
+put @ VM341 530797:359
+eval @ VM341 530797:394
+exec @ VM341 530797:71
+flush @ VM341 530797:127
+asap @ VM341 530797:86
+chan.put @ VM341 530797:393
+eval @ VM341 530797:1402
+getMenuList @ VM217 384722:1425
+init @ VM217 384722:1206
+eval @ VM217 384722:1201
+fk @ VM222 364448:262
+exports.unstable_runWithPriority @ VM224 560053:18
+gg @ VM222 364448:122
+Oj @ VM222 364448:261
+eval @ VM222 364448:261
+V @ VM224 560053:16
+F.port1.onmessage @ VM224 560053:12Understand this error
+model-server?ns=ais-backend-test&uId=2&projId=84&isAdmin=&projName=backend-test&accName=syun7.kim&r…:1 Access to XMLHttpRequest at 'http://portal.aiserving.dev.aip.domain.net/api/v2/admin_config' from origin 'http://localhost:3000' has been blocked by CORS policy: Response to preflight request doesn't pass access control check: Redirect is not allowed for a preflight request.Understand this error
+VM396 71257:2590  GET http://portal.aiserving.dev.aip.domain.net/api/v2/admin_config net::ERR_FAILED
+dispatchXhrRequest @ VM396 71257:2590
+xhr @ VM396 71257:2381
+dispatchRequest @ VM396 71257:2724
+Promise.then
+request @ VM396 71257:3081
+Axios.<computed> @ VM396 71257:3131
+wrap @ VM396 71257:21
+httpRequest @ VM395 151419:403
+getConfigurationList @ VM340 956015:3668
+next @ VM341 530797:1171
+proc @ VM341 530797:1122
+eval @ VM341 530797:603
+immediately @ VM341 530797:96
+runForkEffect @ VM341 530797:602
+runEffect @ VM341 530797:1218
+digestEffect @ VM341 530797:1285
+next @ VM341 530797:1175
+currCb @ VM341 530797:1265
+chCbAtKey @ VM341 530797:716
+currCb @ VM341 530797:1265
+Promise.then
+resolvePromise @ VM341 530797:413
+runCallEffect @ VM341 530797:545
+runEffect @ VM341 530797:1218
+digestEffect @ VM341 530797:1285
+eval @ VM341 530797:739
+runRaceEffect @ VM341 530797:734
+runEffect @ VM341 530797:1218
+digestEffect @ VM341 530797:1285
+next @ VM341 530797:1175
+currCb @ VM341 530797:1265
+takeCb @ VM341 530797:521
+put @ VM341 530797:359
+eval @ VM341 530797:394
+exec @ VM341 530797:71
+flush @ VM341 530797:127
+asap @ VM341 530797:86
+chan.put @ VM341 530797:393
+eval @ VM341 530797:1402
+init @ VM217 384722:1214
+eval @ VM217 384722:1201
+fk @ VM222 364448:262
+exports.unstable_runWithPriority @ VM224 560053:18
+gg @ VM222 364448:122
+Oj @ VM222 364448:261
+eval @ VM222 364448:261
+V @ VM224 560053:16
+F.port1.onmessage @ VM224 560053:12Understand this error
+i18n.js:8 i18next: languageChanged en
+i18n.js:8 i18next: initialized {debug: true, initImmediate: true, ns: Array(1), defaultNS: 'translations', fallbackLng: Array(1), …}
