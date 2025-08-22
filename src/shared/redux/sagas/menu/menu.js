@@ -8,7 +8,7 @@ import actionHeadersLogs from '../../../constants/actionHeaderLogs';
 
 export function* getMenuList() {
     const { roleId } = getUserRole();
-    const url = `menu/side-menu/detail?role_id=${roleId}`;
+    const url = `${window.config.coreApiUrl}menu/side-menu/detail?role_id=${roleId}`;
 
     if (roleId) {
         try {
@@ -26,7 +26,7 @@ export function* getMenuList() {
 
 export function* getMenuGrid(data) {
     const { roleId } = getUserRole();
-    const url = 'menu';
+    const url = `${window.config.coreApiUrl}menu`;
     let response = {};
     if (roleId) {
         try {
@@ -51,7 +51,7 @@ export function* getMenuGrid(data) {
 }
 
 export function* addMenu(data) {
-    const url = 'menu';
+    const url = `${window.config.coreApiUrl}menu`;
     const payload = {
         cluster_id: data.payload.cluster_id || '1',
         icon: data.payload.iconPath ? data.payload.iconPath.name : '',
@@ -78,7 +78,7 @@ export function* addMenu(data) {
 }
 
 export function* editMenu(data) {
-    const url = 'menu';
+    const url = `${window.config.coreApiUrl}menu`;
     const payload = {
         id: data.payload.id,
         enabled: data.payload.enabled ? 1 : 0,
@@ -106,7 +106,7 @@ export function* editMenu(data) {
 }
 
 export function* deleteMenu(data) {
-    const url = 'menu';
+    const url = `${window.config.coreApiUrl}menu`;
     const requestData = {
         id: data.payload.data.id
     };
