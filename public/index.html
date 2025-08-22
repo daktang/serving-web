@@ -13,6 +13,8 @@
     var PORTAL_OOPS = 'portal.aiserving.dev.aip.domain'; // 드문 오탈자(host 뒤에 /net/ 붙는 케이스)
     var LOCAL = 'http://localhost:3000';
 
+    function forceLocal(urlLike) {
+      if (!urlLike) {
         console.log('[forceLocal] Input URL is null/undefined.');
         return urlLike;
       }
@@ -53,6 +55,7 @@
           console.log('[forceLocal] Rewritten URL (oops string replace):', rewrittenUrl);
           return rewrittenUrl;
         }
+      }
       console.log('[forceLocal] No rewrite needed, returning original:', urlLike);
       return urlLike;
     }
