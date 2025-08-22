@@ -1,3 +1,5 @@
+//src/shared/constants/endpoints/index.js
+
 //fixed
 import { concatenateUrl, getUserRole } from '../../utils/common/utility';
 
