@@ -118,16 +118,32 @@
       // Request 인터셉터
       window.axios.interceptors.request.use(function (config) {
         if (config.url) {
+          console.log('[axios hook] Original URL:', config.url);
           config.url = forceLocal(config.url);
+          console.log('[axios hook] Rewritten URL:', config.url);
         }
         config.withCredentials = true;
         return config;
       });
+      
+      // Response 인터셉터도 추가하여 에러 상황 로깅
+      window.axios.interceptors.response.use(
+        function (response) {
+          return response;
+        },
+        function (error) {
+          console.error('[axios hook] Request failed:', error.config?.url, error.message);
+          return Promise.reject(error);
+        }
+      );
     }
     
     // DOM 로드 후와 동적 로딩을 위해 여러 시점에서 실행
     hookAxios();
     window.addEventListener('load', hookAxios);
+    
+    // 더 자주 체크하도록 추가
+    setInterval(hookAxios, 1000);
     
     // MutationObserver로 동적으로 추가되는 스크립트도 감지
     var scriptObserver = new MutationObserver(function(mutations) {
@@ -136,12 +152,14 @@
           mutation.addedNodes.forEach(function(node) {
             if (node.tagName === 'SCRIPT') {
               setTimeout(hookAxios, 100); // 스크립트 로드 후 약간의 지연
+              setTimeout(hookAxios, 500); // 추가 지연으로 더 확실하게
             }
           });
         }
       });
     });
     scriptObserver.observe(document.head, { childList: true, subtree: true });
+    scriptObserver.observe(document.body, { childList: true, subtree: true });
 
     // navigator.sendBeacon
     if (navigator && navigator.sendBeacon) {
