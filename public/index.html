@@ -9,22 +9,10 @@
   <!-- 가장 먼저: portal → http://localhost:3000 로 무조건 치환 (API/폼/네비/iframe 대부분 커버) -->
   <script>
   (function () {
-    // 디버그 플래그 설정 - 필요한 로그만 활성화
-    window.debugFlags = {
-      forceLocal: true,    // forceLocal 함수 로그
-      fetch: true,         // fetch 훅 로그
-      xhr: true,           // XMLHttpRequest 훅 로그
-      detail: true         // detail 요청 특별 추적
-    };
-
     var PORTAL_MAIN = 'portal.aiserving.dev.aip.domain.net';
     var PORTAL_OOPS = 'portal.aiserving.dev.aip.domain'; // 드문 오탈자(host 뒤에 /net/ 붙는 케이스)
     var LOCAL = 'http://localhost:3000';
 
-    // URL을 받아 portal 호스트면 localhost:3000으로 치환하여 "절대 URL"로 반환
-    function forceLocal(urlLike) {
-      console.log('[forceLocal] Input URL:', urlLike); // Log input
-      if (!urlLike) {
         console.log('[forceLocal] Input URL is null/undefined.');
         return urlLike;
       }
@@ -38,15 +26,11 @@
           var path = u.pathname;
           if (u.hostname === PORTAL_OOPS && path.indexOf('/net/') === 0) path = path.slice(4); // '/net' 제거
           const rewrittenUrl = LOCAL + path + u.search + u.hash;
-          if (window.debugFlags && window.debugFlags.forceLocal) {
-            console.log('[DEBUG-FORCELOCAL] Rewritten URL (URL object):', rewrittenUrl);
-          }
+          console.log('[forceLocal] Rewritten URL (URL object):', rewrittenUrl);
           return rewrittenUrl;
         }
       } catch (e) {
-        if (window.debugFlags && window.debugFlags.forceLocal) {
-          console.error('[DEBUG-FORCELOCAL] URL parsing error:', e, 'for URL:', urlLike);
-        }
+        console.error('[forceLocal] URL parsing error:', e, 'for URL:', urlLike);
       }
 
       // 문자열 중간에 포함된 경우도 느슨하게 치환
@@ -58,9 +42,7 @@
             .replace(new RegExp('^//' + PORTAL_MAIN, 'i'), LOCAL)
             .replace(new RegExp('https?://' + PORTAL_MAIN, 'gi'), LOCAL)
             .replace(new RegExp('//' + PORTAL_MAIN, 'gi'), LOCAL);
-          if (window.debugFlags && window.debugFlags.forceLocal) {
-            console.log('[DEBUG-FORCELOCAL] Rewritten URL (string replace):', rewrittenUrl);
-          }
+          console.log('[forceLocal] Rewritten URL (string replace):', rewrittenUrl);
           return rewrittenUrl;
         }
         // 오탈자 호스트 + '/net/' 보정
@@ -68,20 +50,10 @@
           const rewrittenUrl = urlLike
             .replace(new RegExp('^https?://' + PORTAL_OOPS + '/net/', 'i'), LOCAL + '/')
             .replace(new RegExp('^//' + PORTAL_OOPS + '/net/', 'i'), LOCAL + '/');
-          if (window.debugFlags && window.debugFlags.forceLocal) {
-            console.log('[DEBUG-FORCELOCAL] Rewritten URL (oops string replace):', rewrittenUrl);
-          }
+          console.log('[forceLocal] Rewritten URL (oops string replace):', rewrittenUrl);
           return rewrittenUrl;
         }
-    if (window.debugFlags && window.debugFlags.forceLocal) {
-      console.log('[DEBUG-FORCELOCAL] Input URL:', urlLike);
-      if (window.debugFlags && window.debugFlags.forceLocal) {
-        console.log('[DEBUG-FORCELOCAL] No rewrite needed, returning original:', urlLike);
-      }
-
-      if (window.debugFlags && window.debugFlags.forceLocal) {
-        console.log('[DEBUG-FORCELOCAL] Input URL is null/undefined.');
-      }
+      console.log('[forceLocal] No rewrite needed, returning original:', urlLike);
       return urlLike;
     }
 
@@ -91,9 +63,7 @@
       Object.defineProperty(window, 'fetch', {
         configurable: false, writable: false,
         value: function(input, init) {
-          if (window.debugFlags && window.debugFlags.fetch) {
-            console.log('[DEBUG-FETCH] Original input:', input);
-          }
+          console.log('[fetch hook] Original input:', input);
           if (typeof input === 'string') {
             input = forceLocal(input);
           } else if (input && input.url) {
@@ -112,9 +82,7 @@
     if (X) {
       var _open = X.prototype.open, _send = X.prototype.send;
       X.prototype.open = function(method, url) {
-        if (window.debugFlags && window.debugFlags.xhr) {
-          console.log('[DEBUG-XHR] Original URL for open:', url);
-        }
+        console.log('[XHR hook] Original URL for open:', url);
         return _open.call(this, method, forceLocal(url), arguments[2], arguments[3], arguments[4]);
       };
       X.prototype.send = function(body) {
