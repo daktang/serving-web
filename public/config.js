@@ -10,11 +10,13 @@ window.config = {
   apiGateway: {
     base_url_V2: '/coreproxy/',      // 코어 API 계열의 프리픽스(프론트 기준). devServer가 포털로 프록시 + 정규화
     dit_ext_base_url_V1: '/extproxy/',// 외부 DIT 확장 API 프리픽스(프론트 기준). 프록시에서 /ext-dit/api 로 매핑
-    modelWebBackendUrl: '/models'     // 모델 백엔드 라우트 프리픽스 (프론트 기준)
+    modelWebBackendUrl: '/models',    // 모델 백엔드 라우트 프리픽스 (프론트 기준)
+    // 추가: 메뉴 관련 API도 coreproxy를 통하도록 명시적 설정
+    menuApiUrl: '/coreproxy/v2/'      // 메뉴 관련 API 프리픽스
   },
 
   // 레거시 호환(내부에서 참조할 수 있음). 동일하게 /coreproxy 사용.
-  coreApiUrl: '/coreproxy/',
+  coreApiUrl: '/coreproxy/v2/',
 
   // 로그아웃 후 복귀 경로
   // - Keycloak의 OIDC 로그아웃 엔드포인트로 이동하고, post_logout_redirect_uri로 로컬을 준다.

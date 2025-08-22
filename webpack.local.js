@@ -125,6 +125,10 @@ module.exports = {
         ...common,
         pathRewrite: coreRewriter,
         rewrite: coreRewriter,
+        logLevel: 'debug',
+        onProxyReq: (proxyReq, req, res) => {
+          console.log(`[COREPROXY] ${req.method} ${req.url} -> ${proxyReq.path}`);
+        },
       },
 
       // 3) /extproxy: /ext-dit/api 로 단순 매핑
@@ -132,6 +136,7 @@ module.exports = {
         ...common,
         pathRewrite: extRewriter,
         rewrite: extRewriter,
+        logLevel: 'debug',
       },
 
       // 4) Kubeflow 대시보드 등 프록시

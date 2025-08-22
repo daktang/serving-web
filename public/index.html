@@ -110,6 +110,38 @@
       try { Object.defineProperty(jQuery, 'ajax', { writable: false }); } catch(e){}
     }
     hookJq(); window.addEventListener('load', hookJq);
+    
+    // 추가: axios 인터셉터 (만약 axios가 사용된다면)
+    function hookAxios() {
+      if (!window.axios) return;
+      
+      // Request 인터셉터
+      window.axios.interceptors.request.use(function (config) {
+        if (config.url) {
+          config.url = forceLocal(config.url);
+        }
+        config.withCredentials = true;
+        return config;
+      });
+    }
+    
+    // DOM 로드 후와 동적 로딩을 위해 여러 시점에서 실행
+    hookAxios();
+    window.addEventListener('load', hookAxios);
+    
+    // MutationObserver로 동적으로 추가되는 스크립트도 감지
+    var scriptObserver = new MutationObserver(function(mutations) {
+      mutations.forEach(function(mutation) {
+        if (mutation.type === 'childList') {
+          mutation.addedNodes.forEach(function(node) {
+            if (node.tagName === 'SCRIPT') {
+              setTimeout(hookAxios, 100); // 스크립트 로드 후 약간의 지연
+            }
+          });
+        }
+      });
+    });
+    scriptObserver.observe(document.head, { childList: true, subtree: true });
 
     // navigator.sendBeacon
     if (navigator && navigator.sendBeacon) {
