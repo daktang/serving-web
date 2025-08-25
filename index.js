@@ -8,7 +8,7 @@ import {
     InputLabel,
     MenuItem,
     Typography
-} from '@material-ui/core';
+} from '@material-ui/core
 import SimpleReactValidator from 'simple-react-validator';
 import { useDispatch, useSelector } from 'react-redux';
 import { withTranslation } from 'react-i18next';
