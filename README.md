@@ -1,20 +1,86 @@
-npm install --save-dev webpack webpack-cli
-npm WARN notsup Unsupported engine for webpack-cli@6.0.1: wanted: {"node":">=18.12.0"} (current: {"node":"14.21.3","npm":"6.14.18"})
-npm WARN notsup Not compatible with your version of node/npm: webpack-cli@6.0.1
-npm WARN enoent ENOENT: no such file or directory, open 'C:\Users\user.id\Desktop\yun-code\aiserving\aiserving-portal\package.json'
-npm WARN aiserving-portal No description
-npm WARN aiserving-portal No repository field.
-npm WARN aiserving-portal No README data
-npm WARN aiserving-portal No license field.
-
-npm ERR! code ENOENT
-npm ERR! syscall rename
-npm ERR! path C:\Users\user.id\Desktop\yun-code\aiserving\aiserving-portal\node_modules\events
-npm ERR! dest C:\Users\user.id\Desktop\yun-code\aiserving\aiserving-portal\node_modules\.events.DELETE
-npm ERR! errno -4058
-npm ERR! enoent ENOENT: no such file or directory, rename 'C:\Users\user.id\Desktop\yun-code\aiserving\aiserving-portal\node_modules\events' -> 'C:\Users\user.id\Desktop\yun-code\aiserving\aiserving-portal\node_modules\.events.DELETE'
-npm ERR! enoent This is related to npm not being able to find a file.
-npm ERR! enoent
-
-npm ERR! A complete log of this run can be found in:
-npm ERR!     C:\Users\user.id\AppData\Roaming\npm-cache\_logs\2025-08-25T00_51_39_842Z-debug.log
+Blocked aria-hidden on an element because its descendant retained focus. The focus must not be hidden from assistive technology users. Avoid using aria-hidden on a focused element or its ancestor. Consider using the inert attribute instead, which will also prevent focus. For more details, see the aria-hidden section of the WAI-ARIA specification at https://w3c.github.io/aria/#aria-hidden.
+Element with focus: <button.MuiButtonBase-root MuiButton-root MuiButton-text btn-outline-style>
+Ancestor with aria-hidden: <div.grip-resizable#root> <div id=​"root" class=​"grip-resizable" aria-hidden=​"true">​…​</div>​Understand this warning
+APIKeyManagementList.js:135 i18next::translator: missingKey en translations New API Key New API Key
+TableHeader.js:215 i18next::translator: missingKey en translations Valid to Valid to
+TableHeader.js:227 i18next::translator: missingKey en translations Model Server Model Server
+TableHeader.js:215 i18next::translator: missingKey en translations Created at Created at
+TableHeader.js:227 i18next::translator: missingKey en translations  
+APIKeyManagementList.js:135 i18next::translator: missingKey en translations New API Key New API Key
+TableHeader.js:215 i18next::translator: missingKey en translations Valid to Valid to
+TableHeader.js:227 i18next::translator: missingKey en translations Model Server Model Server
+TableHeader.js:215 i18next::translator: missingKey en translations Created at Created at
+TableHeader.js:227 i18next::translator: missingKey en translations  
+index.js:514 i18next::translator: missingKey en translations New API Key New API Key
+index.js:165 i18next::translator: missingKey en translations CREATE CREATE
+APIKeyManagementList.js:135 i18next::translator: missingKey en translations New API Key New API Key
+TableHeader.js:215 i18next::translator: missingKey en translations Valid to Valid to
+TableHeader.js:227 i18next::translator: missingKey en translations Model Server Model Server
+TableHeader.js:215 i18next::translator: missingKey en translations Created at Created at
+TableHeader.js:227 i18next::translator: missingKey en translations  
+index.js:514 i18next::translator: missingKey en translations New API Key New API Key
+index.js:165 i18next::translator: missingKey en translations CREATE CREATE
+TableHeader.js:215 i18next::translator: missingKey en translations Valid to Valid to
+TableHeader.js:227 i18next::translator: missingKey en translations Model Server Model Server
+TableHeader.js:215 i18next::translator: missingKey en translations Created at Created at
+TableHeader.js:227 i18next::translator: missingKey en translations  
+APIKeyManagementList.js:135 i18next::translator: missingKey en translations New API Key New API Key
+TableHeader.js:215 i18next::translator: missingKey en translations Valid to Valid to
+TableHeader.js:227 i18next::translator: missingKey en translations Model Server Model Server
+TableHeader.js:215 i18next::translator: missingKey en translations Created at Created at
+TableHeader.js:227 i18next::translator: missingKey en translations  
+index.js:514 i18next::translator: missingKey en translations New API Key New API Key
+index.js:165 i18next::translator: missingKey en translations CREATE CREATE
+TableHeader.js:215 i18next::translator: missingKey en translations Valid to Valid to
+TableHeader.js:227 i18next::translator: missingKey en translations Model Server Model Server
+TableHeader.js:215 i18next::translator: missingKey en translations Created at Created at
+TableHeader.js:227 i18next::translator: missingKey en translations  
+index.js:514 i18next::translator: missingKey en translations New API Key New API Key
+index.js:165 i18next::translator: missingKey en translations CREATE CREATE
+APIKeyManagementList.js:135 i18next::translator: missingKey en translations New API Key New API Key
+TableHeader.js:215 i18next::translator: missingKey en translations Valid to Valid to
+TableHeader.js:227 i18next::translator: missingKey en translations Model Server Model Server
+TableHeader.js:215 i18next::translator: missingKey en translations Created at Created at
+TableHeader.js:227 i18next::translator: missingKey en translations  
+TableHeader.js:215 i18next::translator: missingKey en translations Valid to Valid to
+TableHeader.js:227 i18next::translator: missingKey en translations Model Server Model Server
+TableHeader.js:215 i18next::translator: missingKey en translations Created at Created at
+TableHeader.js:227 i18next::translator: missingKey en translations  
+APIKeyManagementList.js:135 i18next::translator: missingKey en translations New API Key New API Key
+TableHeader.js:215 i18next::translator: missingKey en translations Valid to Valid to
+TableHeader.js:227 i18next::translator: missingKey en translations Model Server Model Server
+TableHeader.js:215 i18next::translator: missingKey en translations Created at Created at
+TableHeader.js:227 i18next::translator: missingKey en translations  
+APIKeyManagementList.js:135 i18next::translator: missingKey en translations New API Key New API Key
+TableHeader.js:215 i18next::translator: missingKey en translations Valid to Valid to
+TableHeader.js:227 i18next::translator: missingKey en translations Model Server Model Server
+TableHeader.js:215 i18next::translator: missingKey en translations Created at Created at
+TableHeader.js:227 i18next::translator: missingKey en translations  
+index.js:514 i18next::translator: missingKey en translations New API Key New API Key
+index.js:165 i18next::translator: missingKey en translations CREATE CREATE
+APIKeyManagementList.js:135 i18next::translator: missingKey en translations New API Key New API Key
+TableHeader.js:215 i18next::translator: missingKey en translations Valid to Valid to
+TableHeader.js:227 i18next::translator: missingKey en translations Model Server Model Server
+TableHeader.js:215 i18next::translator: missingKey en translations Created at Created at
+TableHeader.js:227 i18next::translator: missingKey en translations  
+index.js:514 i18next::translator: missingKey en translations New API Key New API Key
+index.js:165 i18next::translator: missingKey en translations CREATE CREATE
+TableHeader.js:215 i18next::translator: missingKey en translations Valid to Valid to
+TableHeader.js:227 i18next::translator: missingKey en translations Model Server Model Server
+TableHeader.js:215 i18next::translator: missingKey en translations Created at Created at
+TableHeader.js:227 i18next::translator: missingKey en translations  
+APIKeyManagementList.js:135 i18next::translator: missingKey en translations New API Key New API Key
+TableHeader.js:215 i18next::translator: missingKey en translations Valid to Valid to
+TableHeader.js:227 i18next::translator: missingKey en translations Model Server Model Server
+TableHeader.js:215 i18next::translator: missingKey en translations Created at Created at
+TableHeader.js:227 i18next::translator: missingKey en translations  
+index.js:514 i18next::translator: missingKey en translations New API Key New API Key
+index.js:165 i18next::translator: missingKey en translations CREATE CREATE
+TableHeader.js:215 i18next::translator: missingKey en translations Valid to Valid to
+TableHeader.js:227 i18next::translator: missingKey en translations Model Server Model Server
+TableHeader.js:215 i18next::translator: missingKey en translations Created at Created at
+TableHeader.js:227 i18next::translator: missingKey en translations  
+index.js:514 i18next::translator: missingKey en translations New API Key New API Key
+index.js:165 i18next::translator: missingKey en translations CREATE CREATE
+index.js:514 i18next::translator: missingKey en translations New API Key New API Key
+index.js:165 i18next::translator: missingKey en translations CREATE CREATE
