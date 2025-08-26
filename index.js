@@ -1,5 +1,3 @@
-// src/components/APIKeyManagement/AddAPIKey/index.js
-
 import React, { useEffect, useRef, useState } from 'react';
 import Grid from '@material-ui/core/Grid';
 import {
@@ -39,7 +37,6 @@ import ListItemText from '@material-ui/core/ListItemText';
 import ListItemIcon from '@material-ui/core/ListItemIcon';
 import Checkbox from '@material-ui/core/Checkbox';
 import Button from '@material-ui/core/Button';
-import { getReadyCondition } from '../../../shared/utils/common/utility';
 import httpStatusCodes from '../../../shared/constants/httpStatusCodes';
 import { getItem } from '../../../shared/services/storage.service';
 import { orderBy } from 'lodash';
@@ -53,6 +50,7 @@ const useStyles = makeStyles((theme) => ({
     padding: theme.spacing(1, 2),
   },
   list: {
+    // width: 200,
     height: 230,
     backgroundColor: theme.palette.background.paper,
     overflow: 'auto',
@@ -116,29 +114,14 @@ function AddAPIKey(props) {
     expirationDetails = expirationDetails && verifyConfigValue(expirationDetails);
     expirationDetails = orderBy(expirationDetails, ['order']);
 
-    const targetModelServerList = useSelector(state => state.apiKeyMgmt.modelLists.project);
+    const targetProjectList = useSelector(state => state.apiKeyMgmt.projectLists.project);
     const modelServerTransferList = useSelector(state => state.apiKeyMgmt.modelServerCandidatesList);
 
-    // LOG: 리덕스에서 넘어오는 리스트 변화 스냅샷
-    useEffect(() => {
-      console.groupCollapsed('[NS] targetModelServerList changed');
-      console.log('typeof/array/len:', typeof targetModelServerList, Array.isArray(targetModelServerList), Array.isArray(targetModelServerList) ? targetModelServerList.length : null);
-      console.log('sample first 5:', Array.isArray(targetModelServerList) ? targetModelServerList.slice(0,5) : targetModelServerList);
-      console.groupEnd();
-    }, [targetModelServerList]);
-
-    useEffect(() => {
-      console.groupCollapsed('[NS] modelServerTransferList changed');
-      console.log('typeof/array/len:', typeof modelServerTransferList, Array.isArray(modelServerTransferList), Array.isArray(modelServerTransferList) ? modelServerTransferList.length : null);
-      console.log('sample first 5:', Array.isArray(modelServerTransferList) ? modelServerTransferList.slice(0,5) : modelServerTransferList);
-      console.groupEnd();
-    }, [modelServerTransferList]);
-
-    // filter list whose status is ready
-    modelServerTransferList.filter((namespace)=> {
-        const readyCondition = getReadyCondition(namespace);
-        return readyCondition
-    })
+    // // filter list whose status is ready
+    // modelServerTransferList.filter((namespace)=> {
+    //     const readyCondition = getReadyCondition(namespace);
+    //     return readyCondition
+    // })
 
     const [, forceUpdate] = useState();
     const validator = useRef(
@@ -237,11 +220,9 @@ function AddAPIKey(props) {
     }, [addApiKeyStatus])
 
     useEffect(() => {     
-        // call model server list on load
-        // LOG: 모델 리스트 요청 디스패치
-        console.log('[NS] dispatch GET_MODEL_LIST');
+        // call list of projects the account belongs to on load
         dispatch({
-            type: requestDispatch(actionTypes1.GET_MODEL_LIST),
+            type: requestDispatch(actionTypes1.GET_PROJECT_LIST),
         });
 
         document.querySelectorAll('body')[0].classList.add('add-api-key-popups');
@@ -250,43 +231,14 @@ function AddAPIKey(props) {
         };
     }, []);
 
-    // LOG: 전역 에러/언핸들드 리젝션 캡처 (원인 스택 확보용)
-    useEffect(() => {
-      const onErr = (e) => {
-        console.error('[GLOBAL] window.error:', {
-          message: e.message,
-          stack: e.error?.stack,
-          file: e.filename,
-          line: e.lineno,
-          col: e.colno,
-        });
-      };
-      const onRej = (e) => {
-        console.error('[GLOBAL] unhandledrejection:', {
-          reason: e.reason,
-          stack: e.reason?.stack,
-        });
-      };
-      window.addEventListener('error', onErr);
-      window.addEventListener('unhandledrejection', onRej);
-      return () => {
-        window.removeEventListener('error', onErr);
-        window.removeEventListener('unhandledrejection', onRej);
-      };
-    }, []);
-
     const modelServerCandidateList = (namespace) => {
-        // LOG: 네임스페이스 선택 후 후보 조회 디스패치 직전
-        console.log('[NS] dispatch GET_MODEL_SERVER_CANDIDATES_LIST with:', namespace);
         dispatch({
             type: requestDispatch(actionTypes1.GET_MODEL_SERVER_CANDIDATES_LIST),
             payload: namespace
         });
     }
 
-    const handleNameSPace = (value) => {
-        // LOG: 네임스페이스 onChange 값
-        console.log('[NS] onChange (namespace selected):', value);
+    const handleNamespace = (value) => {
         setState({
             ...state,
             namespace: value.namespace
@@ -471,28 +423,13 @@ function AddAPIKey(props) {
                         id='namespace'
                         name='NameSpace'
                         placeholder='Select Namespace'
-                        options={targetModelServerList}
+                        options={targetProjectList}
                         getOptionLabel={option => option.namespace}
+                        // defaultValue={targetModelServerList ? targetModelServerList[0].namespace : null}
                         disableClearable
                         size='small'
-                        // LOG: 셀렉트 열릴 때 스냅샷
-                        onOpen={() => {
-                          console.groupCollapsed('[NS] onOpen (click Select Namespace)');
-                          console.log('options typeof/array/len:',
-                            typeof targetModelServerList,
-                            Array.isArray(targetModelServerList),
-                            Array.isArray(targetModelServerList)? targetModelServerList.length : null);
-                          console.log('options first 5:',
-                            Array.isArray(targetModelServerList)? targetModelServerList.slice(0,5) : targetModelServerList);
-                          console.log('current state.namespace:', state.namespace);
-                          console.trace('[NS] stack (onOpen)');
-                          console.groupEnd();
-                        }}
-                        // LOG: 선택 값
-                        onChange={(e, value) => {
-                          console.log('[NS] onChange value:', value);
-                          handleNameSPace(value);
-                        }}
+                        // value={state && state.namespace}
+                        onChange={(e, value) => handleNamespace(value)}
                         renderInput={params => (
                             <MLTextbox
                                 id='namespace'
@@ -514,7 +451,7 @@ function AddAPIKey(props) {
                     />
                 </Grid>
 
-                <Grid xs={6} className="namespace-Right">
+                <Grid xs={6} className="namespace-right">
                     <span>Selected</span>
                 </Grid>
             </Grid>
@@ -581,6 +518,7 @@ function AddAPIKey(props) {
                 }
                 buttonName={'CREATE'}
                 content={<ResizerTextEditor width={725} height={550} editableContainer={content} />}
+                // contentText=''
                 handleSubmit={handleSubmit}
                 handleClose={resetForm}
                 formName='Add Model'
