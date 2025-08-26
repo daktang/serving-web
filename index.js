@@ -1,3 +1,6 @@
+// src/components/APIKeyManagement/AddAPIKey/index.js
+// 목적: "Select Namespace" 클릭 시 백색화면 원인 추적을 위해 **로그만** 추가 (동작 변경/리팩토링 없음)
+
 import React, { useEffect, useRef, useState } from 'react';
 import Grid from '@material-ui/core/Grid';
 import {
@@ -319,6 +322,49 @@ function AddAPIKey(props) {
         </Card>
     );
 
+    // ===========================
+    // LOG: 리스트 변화 스냅샷 (원인 파악용)
+    // ===========================
+    useEffect(() => {
+      console.groupCollapsed('[NS][LOG] targetProjectList changed');
+      console.log('typeof/array/len:', typeof targetProjectList, Array.isArray(targetProjectList), Array.isArray(targetProjectList) ? targetProjectList.length : null);
+      console.log('sample first 5:', Array.isArray(targetProjectList) ? targetProjectList.slice(0,5) : targetProjectList);
+      console.groupEnd();
+    }, [targetProjectList]); // LOG: 추가
+
+    useEffect(() => {
+      console.groupCollapsed('[NS][LOG] modelServerTransferList changed');
+      console.log('typeof/array/len:', typeof modelServerTransferList, Array.isArray(modelServerTransferList), Array.isArray(modelServerTransferList) ? modelServerTransferList.length : null);
+      console.log('sample first 5:', Array.isArray(modelServerTransferList) ? modelServerTransferList.slice(0,5) : modelServerTransferList);
+      console.groupEnd();
+    }, [modelServerTransferList]); // LOG: 추가
+
+    // ===========================
+    // LOG: 전역 오류/언핸들드 리젝션 (흰화면 순간 스택 확보)
+    // ===========================
+    useEffect(() => {
+      const onErr = (e) => {
+        console.error('[GLOBAL][LOG] window.error:', {
+          message: e.message,
+          stack: e.error?.stack,
+          file: e.filename,
+          line: e.lineno,
+          col: e.colno,
+        });
+      };
+      const onRej = (e) => {
+        console.error('[GLOBAL][LOG] unhandledrejection:', {
+          reason: e.reason,
+          stack: e.reason?.stack,
+        });
+      };
+      window.addEventListener('error', onErr);
+      window.addEventListener('unhandledrejection', onRej);
+      return () => {
+        window.removeEventListener('error', onErr);
+        window.removeEventListener('unhandledrejection', onRej);
+      };
+    }, []); // LOG: 추가
 
     const content = (
         <Grid container spacing={3} className='menu-grid'>
@@ -429,7 +475,27 @@ function AddAPIKey(props) {
                         disableClearable
                         size='small'
                         // value={state && state.namespace}
-                        onChange={(e, value) => handleNamespace(value)}
+
+                        // LOG: Select Namespace 클릭 직후 — 옵션 스냅샷/스택
+                        onOpen={() => {
+                          console.groupCollapsed('[NS][LOG] onOpen (Select Namespace clicked)');
+                          console.log('options typeof/array/len:',
+                            typeof targetProjectList,
+                            Array.isArray(targetProjectList),
+                            Array.isArray(targetProjectList) ? targetProjectList.length : null);
+                          console.log('options first 5:',
+                            Array.isArray(targetProjectList) ? targetProjectList.slice(0,5) : targetProjectList);
+                          console.log('current state.namespace:', state.namespace);
+                          console.trace('[NS][LOG] stack (onOpen)');
+                          console.groupEnd();
+                        }}
+
+                        // LOG: 실제 선택 시점 — 선택 값/다음 단계 진입 확인
+                        onChange={(e, value) => {
+                          console.log('[NS][LOG] onChange value:', value);
+                          handleNamespace(value);
+                        }}
+
                         renderInput={params => (
                             <MLTextbox
                                 id='namespace'
