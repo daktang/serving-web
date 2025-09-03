@@ -223,7 +223,7 @@ function AddAPIKey(props) {
     }, [addApiKeyStatus])
 
     useEffect(() => {     
-        // call list of projects the account belongs to on load
+        // 
         dispatch({
             type: requestDispatch(actionTypes1.GET_PROJECT_LIST),
         });
@@ -323,24 +323,26 @@ function AddAPIKey(props) {
     );
 
     // ===========================
-    // LOG: 리스트 변화 스냅샷 (원인 파악용)
+    // Logging: targetProjectList & modelServerTransferList
     // ===========================
     useEffect(() => {
       console.groupCollapsed('[NS][LOG] targetProjectList changed');
       console.log('typeof/array/len:', typeof targetProjectList, Array.isArray(targetProjectList), Array.isArray(targetProjectList) ? targetProjectList.length : null);
       console.log('sample first 5:', Array.isArray(targetProjectList) ? targetProjectList.slice(0,5) : targetProjectList);
       console.groupEnd();
-    }, [targetProjectList]); // LOG: 추가
+    }, [targetProjectList]); // project/namespace info logging status
+    // const targetModelServerList = useSelector(state => state.apiKeyMgmt.modelLists.project);       
 
     useEffect(() => {
       console.groupCollapsed('[NS][LOG] modelServerTransferList changed');
       console.log('typeof/array/len:', typeof modelServerTransferList, Array.isArray(modelServerTransferList), Array.isArray(modelServerTransferList) ? modelServerTransferList.length : null);
       console.log('sample first 5:', Array.isArray(modelServerTransferList) ? modelServerTransferList.slice(0,5) : modelServerTransferList);
       console.groupEnd();
-    }, [modelServerTransferList]); // LOG: 추가
+    }, [modelServerTransferList]); // project > model server list
+    // const modelServerTransferList = useSelector(state => state.apiKeyMgmt.modelServerCandidatesList);
 
     // ===========================
-    // LOG: 전역 오류/언핸들드 리젝션 (흰화면 순간 스택 확보)
+    // LOG: Global Error/Unhandled Rejection (white stack chekc)
     // ===========================
     useEffect(() => {
       const onErr = (e) => {
