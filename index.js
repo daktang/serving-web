@@ -1,5 +1,6 @@
 // src/components/APIKeyManagement/AddAPIKey/index.js
-// 목적: "Select Namespace" 클릭 시 백색화면 원인 추적을 위해 **로그만** 추가 (동작 변경/리팩토링 없음)
+// NOTE: 아래의 [LOG-TEST] 주석들은 모두 "로그용" 코드이며 기본은 주석 처리됨.
+// 원하는 라인만 주석 해제하여 콘솔 로그를 활성화하세요. (동작 변경 없음)
 
 import React, { useEffect, useRef, useState } from 'react';
 import Grid from '@material-ui/core/Grid';
@@ -120,11 +121,25 @@ function AddAPIKey(props) {
     const targetProjectList = useSelector(state => state.apiKeyMgmt.projectLists.project);
     const modelServerTransferList = useSelector(state => state.apiKeyMgmt.modelServerCandidatesList);
 
-    // // filter list whose status is ready
-    // modelServerTransferList.filter((namespace)=> {
-    //     const readyCondition = getReadyCondition(namespace);
-    //     return readyCondition
-    // })
+    // [LOG-TEST] targetProjectList 변화 감시 (주석 해제 시 프로젝트/네임스페이스 목록 확인)
+    /*
+    useEffect(() => {
+      console.groupCollapsed('[STEP1][targetProjectList] changed');
+      console.log('isArray:', Array.isArray(targetProjectList), 'len:', Array.isArray(targetProjectList) ? targetProjectList.length : null);
+      console.log('first5:', Array.isArray(targetProjectList) ? targetProjectList.slice(0,5) : targetProjectList);
+      console.groupEnd();
+    }, [targetProjectList]);
+    */
+
+    // [LOG-TEST] modelServerTransferList 변화 감시 (주석 해제 시 후보 모델 서버 목록 확인)
+    /*
+    useEffect(() => {
+      console.groupCollapsed('[STEP4][modelServerTransferList] changed');
+      console.log('isArray:', Array.isArray(modelServerTransferList), 'len:', Array.isArray(modelServerTransferList) ? modelServerTransferList.length : null);
+      console.log('first5:', Array.isArray(modelServerTransferList) ? modelServerTransferList.slice(0,5) : modelServerTransferList);
+      console.groupEnd();
+    }, [modelServerTransferList]);
+    */
 
     const [, forceUpdate] = useState();
     const validator = useRef(
@@ -174,7 +189,7 @@ function AddAPIKey(props) {
                         }
                     )
                 }
-            })       
+            })
         }
 
         expirationDetails.map((item)=> {
@@ -222,7 +237,7 @@ function AddAPIKey(props) {
         }
     }, [addApiKeyStatus])
 
-    useEffect(() => {     
+    useEffect(() => {
         // call list of projects the account belongs to on load
         dispatch({
             type: requestDispatch(actionTypes1.GET_PROJECT_LIST),
@@ -242,6 +257,12 @@ function AddAPIKey(props) {
     }
 
     const handleNamespace = (value) => {
+        // [LOG-TEST] 선택된 항목/네임스페이스 확인 (주석 해제하여 사용)
+        // console.groupCollapsed('[STEP3][handleNamespace]');
+        // console.log('incoming value:', value);
+        // console.log('value?.namespace:', value && value.namespace);
+        // console.groupEnd();
+
         setState({
             ...state,
             namespace: value.namespace
@@ -322,6 +343,32 @@ function AddAPIKey(props) {
         </Card>
     );
 
+    // [LOG-TEST] 전역 에러/미처리 Promise 감시 (흰화면 순간 스택 확인용)
+    /*
+    useEffect(() => {
+      const onErr = (e) => {
+        console.error('[STEP5][window.error]', {
+          message: e.message,
+          stack: e.error?.stack,
+          file: e.filename,
+          line: e.lineno,
+          col: e.colno,
+        });
+      };
+      const onRej = (e) => {
+        console.error('[STEP5][unhandledrejection]', {
+          reason: e.reason,
+          stack: e.reason?.stack,
+        });
+      };
+      window.addEventListener('error', onErr);
+      window.addEventListener('unhandledrejection', onRej);
+      return () => {
+        window.removeEventListener('error', onErr);
+        window.removeEventListener('unhandledrejection', onRej);
+      };
+    }, []);
+    */
 
     const content = (
         <Grid container spacing={3} className='menu-grid'>
@@ -433,6 +480,22 @@ function AddAPIKey(props) {
                         size='small'
                         // value={state && state.namespace}
                         onChange={(e, value) => handleNamespace(value)}
+                        /* [LOG-TEST] 드롭다운 열릴 때 옵션/스택 확인하고 싶으면 아래 주석 해제 후 onOpen prop 추가
+                        onOpen={() => {
+                          console.groupCollapsed('[STEP2][onOpen]');
+                          console.log('options isArray/len:', Array.isArray(targetProjectList), Array.isArray(targetProjectList) ? targetProjectList.length : null);
+                          console.log('first5:', Array.isArray(targetProjectList) ? targetProjectList.slice(0,5) : targetProjectList);
+                          console.log('state.namespace:', state.namespace);
+                          console.trace('[STEP2] stack');
+                          console.groupEnd();
+                        }}
+                        */
+                        /* [LOG-TEST] 선택값을 즉시 보고 싶으면 아래처럼 교체 (현재 onChange 유지)
+                        onChange={(e, value) => { 
+                          console.log('[STEP3][onChange] value:', value);
+                          handleNamespace(value);
+                        }}
+                        */
                         renderInput={params => (
                             <MLTextbox
                                 id='namespace'
