@@ -1,37 +1,37 @@
-user@server:~/yun-workbench/lang/python/uv-playground$ apt-cache policy libpam-modules
-libpam-modules:
-  Installed: 1.3.1-5ubuntu4.7
-  Candidate: 1.4.0-11ubuntu2.6
-  Version table:
-     1.4.0-11ubuntu2.6 500
-        500 http://repo.mirror.net/artifactory/debian-remote/ubuntu jammy-updates/main amd64 Packages
-     1.4.0-11ubuntu2 500
-        500 http://repo.mirror.net/artifactory/debian-remote/ubuntu jammy/main amd64 Packages
- *** 1.3.1-5ubuntu4.7 100
-        100 /var/lib/dpkg/status
-user@server:~/yun-workbench/lang/python/uv-playground$ sudo apt install -y libpam-modules=1.4.0-11ubuntu2.6 --allow-downgrades --allow-change-held-packages
-Reading package lists... Done
-Building dependency tree... Done
-Reading state information... Done
-You might want to run 'apt --fix-broken install' to correct these.
-The following packages have unmet dependencies:
- gir1.2-freedesktop : Depends: gir1.2-glib-2.0 (= 1.72.0-1) but 1.64.1-1~ubuntu20.04.1 is to be installed
- mutter : Depends: libmutter-6-0 (>= 3.29.4) but it is not installable
-E: Unmet dependencies. Try 'apt --fix-broken install' with no packages (or specify a solution).
-user@server:~/yun-workbench/lang/python/uv-playground$ sudo apt purge -y mutter gir1.2-freedesktop
-Reading package lists... Done
-Building dependency tree... Done
-Reading state information... Done
-You might want to run 'apt --fix-broken install' to correct these.
-The following packages have unmet dependencies:
- gir1.2-atspi-2.0 : Depends: gir1.2-freedesktop but it is not going to be installed
- gir1.2-gtk-3.0 : Depends: gir1.2-freedesktop (>= 1.39.0) but it is not going to be installed
- gir1.2-gtk-4.0 : Depends: gir1.2-freedesktop (>= 1.39.0) but it is not going to be installed
- gir1.2-mutter-10 : Depends: gir1.2-freedesktop (>= 0.9.12) but it is not going to be installed
- gir1.2-pango-1.0 : Depends: gir1.2-freedesktop (>= 0.9.5) but it is not going to be installed
- gir1.2-rsvg-2.0 : Depends: gir1.2-freedesktop (>= 0.10.8) but it is not going to be installed
- gnome-shell : Depends: gir1.2-freedesktop but it is not going to be installed
-               Recommends: power-profiles-daemon but it is not going to be installed
- libpam-modules : PreDepends: libpam-modules-bin (= 1.3.1-5ubuntu4.7) but 1.4.0-11ubuntu2.6 is to be installed
-                  Recommends: update-motd but it is not going to be installed
-E: Unmet dependencies. Try 'apt --fix-broken install' with no packages (or specify a solution).
+user@server:/tmp$ apt download libpam-modules-bin=1.4.0-11ubuntu2.6
+Get:1 http://repo.mirror.net/artifactory/debian-remote/ubuntu jammy-updates/main amd64 libpam-modules-bin amd64 1.4.0-11ubuntu2.6 [37.4 kB]
+Fetched 37.4 kB in 0s (2,039 kB/s)            
+user@server:/tmp$ apt download libpam-runtime=1.4.0-11ubuntu2.6
+Get:1 http://repo.mirror.net/artifactory/debian-remote/ubuntu jammy-updates/main amd64 libpam-runtime all 1.4.0-11ubuntu2.6 [40.2 kB]
+Fetched 40.2 kB in 0s (2,207 kB/s)        
+user@server:/tmp$ apt download libpam0g=1.4.0-11ubuntu2.6
+Get:1 http://repo.mirror.net/artifactory/debian-remote/ubuntu jammy-updates/main amd64 libpam0g amd64 1.4.0-11ubuntu2.6 [59.9 kB]
+Fetched 59.9 kB in 0s (788 kB/s)    
+user@server:/tmp$ sudo dpkg -i --force-all libpam0g_*.deb
+(Reading database ... 235144 files and directories currently installed.)
+Preparing to unpack libpam0g_1.4.0-11ubuntu2.6_amd64.deb ...
+Unpacking libpam0g:amd64 (1.4.0-11ubuntu2.6) over (1.4.0-11ubuntu2.6) ...
+Setting up libpam0g:amd64 (1.4.0-11ubuntu2.6) ...
+Processing triggers for libc-bin (2.35-0ubuntu3.12) ...
+user@server:/tmp$ sudo dpkg -i --force-all libpam-modules-bin_*.deb
+(Reading database ... 235144 files and directories currently installed.)
+Preparing to unpack libpam-modules-bin_1.4.0-11ubuntu2.6_amd64.deb ...
+Unpacking libpam-modules-bin (1.4.0-11ubuntu2.6) over (1.4.0-11ubuntu2.6) ...
+Setting up libpam-modules-bin (1.4.0-11ubuntu2.6) ...
+Processing triggers for man-db (2.9.1-1) ...
+user@server:/tmp$ sudo dpkg -i --force-all libpam-runtime_*.deb
+(Reading database ... 235144 files and directories currently installed.)
+Preparing to unpack libpam-runtime_1.4.0-11ubuntu2.6_all.deb ...
+Unpacking libpam-runtime (1.4.0-11ubuntu2.6) over (1.4.0-11ubuntu2.6) ...
+Setting up libpam-runtime (1.4.0-11ubuntu2.6) ...
+
+pam-auth-update: Local modifications to /etc/pam.d/common-*, not updating.
+pam-auth-update: Run pam-auth-update --force to override.
+
+Processing triggers for man-db (2.9.1-1) ...
+user@server:/tmp$ sudo dpkg -i --force-all libpam-modules_*.deb
+(Reading database ... 235144 files and directories currently installed.)
+Preparing to unpack libpam-modules_1.4.0-11ubuntu2.6_amd64.deb ...
+dpkg: error processing archive libpam-modules_1.4.0-11ubuntu2.6_amd64.deb (--install):
+ new libpam-modules:amd64 package pre-installation script subprocess returned error exit status 2
+Errors were encountered while processing:
