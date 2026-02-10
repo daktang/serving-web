@@ -11,3 +11,10 @@
   </body>
   <script src="/bundle.js"></script>
 </html>
+
+
+uv add fastapi -- dry-run vv
+  × No solution found when resolving dependencies:
+  ╰─▶ Because there are no versions of dry-run and your project depends on dry-run, we can conclude that your project's requirements are
+      unsatisfiable.
+  help: If you want to add the package regardless of the failed resolution, provide the `--frozen` flag to skip locking and syncing.
