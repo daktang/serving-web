@@ -1,3 +1,7 @@
-pam_access.so  pam_deny.so  pam_exec.so        pam_faillock.so  pam_ftp.so            pam_group.so    pam_lastlog.so   pam_localuser.so  pam_mkhomedir.so  pam_nologin.so    pam_pwquality.so  pam_securetty.so  pam_setquota.so  pam_succeed_if.so  pam_timestamp.so  pam_unity_uac.so  pam_usertype.so  pam_xauth.so
-pam_cap.so     pam_echo.so  pam_extrausers.so  pam_filter.so    pam_gdm.so            pam_issue.so    pam_limits.so    pam_loginuid.so   pam_motd.so       pam_permit.so     pam_rhosts.so     pam_selinux.so    pam_shells.so    pam_systemd.so     pam_tty_audit.so  pam_unix.so       pam_warn.so
-pam_debug.so   pam_env.so   pam_faildelay.so   pam_fprintd.so   pam_gnome_keyring.so  pam_keyinit.so  pam_listfile.so  pam_mail.so       pam_namespace.so  pam_pwhistory.so  pam_rootok.so     pam_sepermit.so   pam_stress.so    pam_time.so        pam_umask.so      pam_userdb.so     pam_wheel.so
+grep -R pam_tally2 /etc/pam.d
+/etc/pam.d/common-auth:auth    required                        pam_tally2.so onerr=fail deny=5 unlock_time=1800
+/etc/pam.d/unity.backup/common-auth.unity.20250624.104155.3445941-ac.uninstall:auth    required                        pam_tally2.so onerr=fail deny=100 unlock_time=1800
+/etc/pam.d/unity.backup/common-auth.unity.20250624.110359.3562165-ac.uninstall:auth    required                        pam_tally2.so onerr=fail deny=100 unlock_time=1800
+/etc/pam.d/unity.backup/common-auth.unity.20221206.105253.18809-ac.install:auth    required                        pam_tally2.so onerr=fail deny=4 unlock_time=1800
+/etc/pam.d/unity.backup/common-auth.unity.20250624.110400.3562165-ac.install:auth    required                        pam_tally2.so onerr=fail deny=100 unlock_time=1800
+/etc/pam.d/unity.backup/common-auth.unity.20221206.105253.18809-ac.uninstall:auth    required                        pam_tally2.so onerr=fail deny=4 unlock_time=1800
