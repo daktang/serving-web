@@ -1,32 +1,18 @@
-Installing new version of config file /etc/xdg/autostart/org.gnome.Evolution-alarm-notify.desktop ...
-Processing triggers for libc-bin (2.35-0ubuntu3.12) ...
-Processing triggers for man-db (2.9.1-1) ...
-Processing triggers for ureadahead (0.100.0-21) ...
-Processing triggers for install-info (6.7.0.dfsg.2-5) ...
-Processing triggers for mailcap (3.70+nmu1ubuntu1) ...
-Processing triggers for desktop-file-utils (0.24-1ubuntu3) ...
-Processing triggers for hicolor-icon-theme (0.17-2) ...
-Processing triggers for gnome-menus (3.36.0-1ubuntu3) ...
-Processing triggers for dictionaries-common (1.28.14) ...
-Processing triggers for initramfs-tools (0.140ubuntu13.5) ...
-update-initramfs: Generating /boot/initrd.img-5.4.0-216-generic
-I: The initramfs will attempt to resume from /dev/dm-4
-I: (/dev/mapper/rootvg-swap_lv)
-I: Set the RESUME variable to override this.
-Processing triggers for dbus (1.12.20-2ubuntu4.1) ...
-Errors were encountered while processing:
- gir1.2-freedesktop:amd64
- gir1.2-gtk-3.0:amd64
- gir1.2-gweather-3.0:amd64
- gir1.2-mutter-10:amd64
- gir1.2-gcr-3:amd64
- gir1.2-pango-1.0:amd64
- gir1.2-gnomedesktop-3.0:amd64
- gnome-shell
- ubuntu-session
- ibus
- gdm3
- gir1.2-gtk-4.0:amd64
- gir1.2-webkit2-4.0:amd64
- gjs
- gir1.2-adw-1:amd64
+user@server:~/yun-workbench/lang/python/uv-playground$ dpkg -l | grep libpam
+ii  libpam-cap:amd64                       1:2.44-1ubuntu0.22.04.2             amd64        POSIX 1003.1e capabilities (PAM module)
+ii  libpam-fprintd:amd64                   1.90.9-1~ubuntu20.04.1              amd64        PAM module for fingerprint authentication through fprintd
+ii  libpam-gnome-keyring:amd64             3.36.0-1ubuntu1                     amd64        PAM module to unlock the GNOME keyring upon login
+ii  libpam-modules:amd64                   1.3.1-5ubuntu4.7                    amd64        Pluggable Authentication Modules for PAM
+ii  libpam-modules-bin                     1.4.0-11ubuntu2.6                   amd64        Pluggable Authentication Modules for PAM - helper binaries
+ii  libpam-pwquality:amd64                 1.4.4-1build2                       amd64        PAM module to check password strength
+ii  libpam-runtime                         1.4.0-11ubuntu2.6                   all          Runtime support for the PAM library
+ii  libpam-systemd:amd64                   249.11-0ubuntu3.17                  amd64        system and service manager - PAM module
+ii  libpam0g:amd64                         1.4.0-11ubuntu2.6                   amd64        Pluggable Authentication Modules library
+user@server:~/yun-workbench/lang/python/uv-playground$ grep -r jammy /etc/apt/
+/etc/apt/sources.list.bak:# deb http://repo.mirror.net/artifactory/debian-remote/ubuntu jammy main restricted
+/etc/apt/sources.list.bak:# deb http://repo.mirror.net/artifactory/debian-remote/ubuntu jammy-updates main restricted
+/etc/apt/sources.list.bak:# deb http://repo.mirror.net/artifactory/debian-remote/ubuntu jammy universe
+/etc/apt/sources.list.bak:# deb http://repo.mirror.net/artifactory/debian-remote/ubuntu jammy-updates universe
+/etc/apt/sources.list.bak:# deb http://repo.mirror.net/artifactory/debian-remote/ubuntu jammy multiverse
+/etc/apt/sources.list.bak:# deb http://repo.mirror.net/artifactory/debian-remote/ubuntu jammy-updates multiverse
+/etc/apt/sources.list.bak:# deb http://repo.mirror.net/artifactory/debian-remote/ubuntu jammy-backports main restricted universe multiverse
