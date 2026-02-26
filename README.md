@@ -1,23 +1,6 @@
-FROM mirror-repository.net/platform/notebook/aipbase/cpu:jammy-24.06 as requirements-stage
-
-WORKDIR /tmp
-
-RUN conda install -y python=3.10 poetry=1.8.5
-
-COPY ./pyproject.toml ./poetry.lock* /tmp/
-RUN poetry export -f requirements.txt --output requirements.txt --without-hashes
-
-### main stage ###
-FROM mirror-repository.net/platform/notebook/aipbase/cpu:jammy-24.06
-
-WORKDIR /code/
-
-COPY --from=requirements-stage /tmp/requirements.txt /code/requirements.txt
-RUN pip install --no-cache-dir --upgrade -r requirements.txt
-
-COPY app /code/app
-
-SHELL ["conda", "run", "-n", "aipbase", "/bin/bash", "-c"]
-
-EXPOSE 8000
-ENTRYPOINT ["conda", "run", "--no-capture-output", "-n", "aipbase", "uvicorn", "app.main:app", "--host", "0.0.0.0", "--port", "8000"]
+Step 6/11 : COPY pyproject.toml uv.lock* /code/
+ ---> fd089ed299b1
+Step 7/11 : RUN uv sync --frozen --no-cache
+ ---> Running in fe3b8307036c
+error: Request failed after 3 retries
+  Caused by: Failed to download https://id:****@domain.net/artifactory/generic-github-remote/astral-sh/python-build-standalone/releases/download/20260211/cpython-3.14.3%2B20260211-x86_64-unknown-linux-gnu-install_only_stripped.tar.gz
