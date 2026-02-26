@@ -1,15 +1,23 @@
-apiVersion: skaffold/v4beta6
-kind: Config
-metadata:
-  name: uv-fastapi-starter-kit
-profiles:
-  - name: local
-    activation:
-      - command: local
-    deploy: # describes how the manifests are deployed.
-      helm:
-        releases:
-          setValueTemplates:
-            # Image Template
-            image.repository: "{{.IMAGE_REPO_uv_fastapi_starter_kit}}"
-            image.tag: "{{.IMAGE_TAG_uv_fastapi_starter_kit}}@{{.IMAGE_DIGEST_uv_fastapi_starter_kit}}"
+FROM mirror-repository.net/platform/notebook/aipbase/cpu:jammy-24.06 as requirements-stage
+
+WORKDIR /tmp
+
+RUN conda install -y python=3.10 poetry=1.8.5
+
+COPY ./pyproject.toml ./poetry.lock* /tmp/
+RUN poetry export -f requirements.txt --output requirements.txt --without-hashes
+
+### main stage ###
+FROM mirror-repository.net/platform/notebook/aipbase/cpu:jammy-24.06
+
+WORKDIR /code/
+
+COPY --from=requirements-stage /tmp/requirements.txt /code/requirements.txt
+RUN pip install --no-cache-dir --upgrade -r requirements.txt
+
+COPY app /code/app
+
+SHELL ["conda", "run", "-n", "aipbase", "/bin/bash", "-c"]
+
+EXPOSE 8000
+ENTRYPOINT ["conda", "run", "--no-capture-output", "-n", "aipbase", "uvicorn", "app.main:app", "--host", "0.0.0.0", "--port", "8000"]
