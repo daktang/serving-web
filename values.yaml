@@ -9,7 +9,7 @@ replicaCount: 1
 # -- Image of mlflow
 image:
   # -- The docker image repository to use
-  repository: burakince/mlflow
+  repository: mirror.net/docker.io/burakince/mlflow
   # -- The docker image pull policy
   pullPolicy: IfNotPresent
   # -- The docker image tag to use. Default app version
@@ -20,7 +20,7 @@ initImages:
   # -- dbchecker init container image configuration
   dbchecker:
     # -- dbchecker init container image repository to use
-    repository: busybox
+    repository: mirror.net/docker.io/busybox
     # -- dbchecker init container image pull policy
     pullPolicy: IfNotPresent
     # -- dbchecker init container image tag to use
@@ -28,7 +28,7 @@ initImages:
   # -- mlflow-db-migration init container image configuration
   mlflowDbMigration:
     # -- mlflow-db-migration init container image repository to use.
-    repository: burakince/mlflow
+    repository: mirror.net/docker.io/burakince/mlflow
     # -- mlflow-db-migration init container image pull policy.
     pullPolicy: IfNotPresent
     # -- mlflow-db-migration init container image tag to use. Default app version
@@ -36,7 +36,7 @@ initImages:
   # -- ini-file-initializer init container image configuration
   iniFileInitializer:
     # -- ini-file-initializer init container image repository to use
-    repository: busybox
+    repository: mirror.net/docker.io/busybox
     # -- ini-file-initializer init container image pull policy
     pullPolicy: IfNotPresent
     # -- ini-file-initializer init container image tag to use
@@ -68,7 +68,8 @@ serviceAccount:
   # -- Annotations to add to the service account. AWS EKS users can assign role arn from here.
   # Please find more information from here:
   # https://docs.aws.amazon.com/eks/latest/userguide/associate-service-account-role.html
-  annotations: {}
+  annotations:
+    {}
     # eks.amazonaws.com/role-arn: ""
 
   # -- The name of the ServiceAccount to use.
@@ -130,7 +131,7 @@ telemetry:
 # -- Mlflow database connection settings
 backendStore:
   # -- Specifies if you want to run database migration
-  databaseMigration: false
+  databaseMigration: true
 
   # -- Add an additional init container, which checks for database availability
   databaseConnectionCheck: false
@@ -140,19 +141,19 @@ backendStore:
 
   postgres:
     # -- Specifies if you want to use postgres backend storage
-    enabled: false
+    enabled: true
     # -- Postgres host address. e.g. your RDS or Azure Postgres Service endpoint
-    host: "" # required
+    host: "mlflow-postgresql" # required
     # -- Postgres service port
     port: 5432 # required
     # -- mlflow database name created before in the postgres instance
-    database: "" # required
+    database: "mlflow" # required
     # -- postgres database user name which can access to mlflow database
-    user: "" # required
+    user: "mlflow" # required
     # -- postgres database user password which can access to mlflow database
-    password: "" # required
+    password: "mlflowpass" # required
     # -- postgres database connection driver. e.g.: "psycopg2"
-    driver: ""
+    driver: "psycopg2"
 
   mysql:
     # -- Specifies if you want to use mysql backend storage
@@ -198,12 +199,12 @@ backendStore:
 # -- Bitnami PostgreSQL configuration. For more information checkout: https://github.com/bitnami/charts/tree/main/bitnami/postgresql
 postgresql:
   # -- Enable postgresql
-  enabled: false
+  enabled: true
   architecture: standalone
 
   image:
     # -- This is temporary workaround because of bitnami's deprecation until to completely replace it with our solution.
-    repository: bitnamilegacy/postgresql
+    repository: mirror.net/docker.io/bitnamilegacy/postgresql
 
   primary:
     service:
@@ -215,8 +216,8 @@ postgresql:
       existingClaim: ""
 
   auth:
-    username: ""
-    password: ""
+    username: "mlflow"
+    password: "mlflowpass"
     # -- The name of the PostgreSQL database.
     database: "mlflow"
 
@@ -337,7 +338,7 @@ auth:
   # -- PostgreSQL based centrilised authentication database
   postgres:
     # -- Specifies if you want to use postgres auth backend storage
-    enabled: false
+    enabled: true
     # -- Postgres host address. e.g. your RDS or Azure Postgres Service endpoint
     host: "" # required
     # -- Postgres service port
@@ -413,7 +414,8 @@ autoscaling:
           averageUtilization: 80
 
   # -- The behavior of the autoscaler. Only supported on K8s 1.18.0 or later.
-  behavior: {}
+  behavior:
+    {}
     # scaleDown:
     #   stabilizationWindowSeconds: 300
     #   policies:
@@ -434,26 +436,27 @@ autoscaling:
 # -- A map of arguments and values to pass to the `mlflow server` command. Keys must be camelcase. Helm will turn them to kebabcase style.
 extraArgs: {}
 # Number of gunicorn worker processes to handle requests (default: 4).
-  # workers: TEXT
+# workers: TEXT
 # A prefix which will be prepended to the path of all static paths.
 # It must always start with slash `/`
 # e.g. /mlflow
-  # staticPrefix: TEXT
+# staticPrefix: TEXT
 # Additional command line options forwarded to gunicorn processes.
-  # gunicornOpts: TEXT
+# gunicornOpts: TEXT
 # Additional command line options for waitress-serve.
-  # waitressOpts: TEXT
+# waitressOpts: TEXT
 
 # -- A list of flags to pass to `mlflow server` command. Items must be camelcase. Helm will turn them to kebabcase style.
 extraFlags: []
 # If specified, enables serving of artifact uploads, downloads, and list requests by routing these requests
 # to the storage location that is specified by ‘–artifact-destination’ directly through a proxy.
-  # serveArtifacts
+# serveArtifacts
 # If specified, configures the mlflow server to be used only for proxied artifact serving.
-  # artifactsOnly
+# artifactsOnly
 
 # -- Extra environment variables
-extraEnvVars: {}
+extraEnvVars:
+  {}
   # MLFLOW_S3_IGNORE_TLS: true  # Skip TLS certificate verification for S3
   # MLFLOW_S3_UPLOAD_EXTRA_ARGS: '{"ServerSideEncryption": "aws:kms", "SSEKMSKeyId": "1234"}'  # Extra S3 upload arguments
   # AWS_DEFAULT_REGION: my_region  # AWS default region
@@ -476,7 +479,8 @@ ingress:
   # -- New style ingress class name. Only possible if you use K8s 1.18.0 or later version
   className: ""
   # -- Additional ingress annotations
-  annotations: {}
+  annotations:
+    {}
     # kubernetes.io/ingress.class: nginx
     # kubernetes.io/tls-acme: "true"
   hosts:
@@ -492,7 +496,8 @@ ingress:
   #      - chart-example.local
 
 # -- This block is for setting up the resource management for the pod more information can be found here: https://kubernetes.io/docs/concepts/configuration/manage-resources-containers/
-resources: {}
+resources:
+  {}
   # We usually recommend not to specify default resources and to leave this as a conscious
   # choice for the user. This also increases chances charts run on environments with little
   # resources, such as Minikube. If you do want to specify resources, uncomment the following
@@ -527,7 +532,8 @@ serviceMonitor:
   targetLabels: []
 
   # -- Set of rules to relabel your exist metric labels
-  metricRelabelings: []
+  metricRelabelings:
+    []
     # - sourceLabels: [prometheus_replica]
     #   regex: (.*)
     #   targetLabel: another_prometheus_replica
