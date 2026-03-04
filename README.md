@@ -1,9 +1,4 @@
- helm upgrade --install mlflow . -n mlflow --create-namespace
-Release "mlflow" does not exist. Installing it now.
-Error: values don't meet the specifications of the schema(s) in the following chart(s):
-mlflow:
-- (root): Must validate "then" as "if" was valid
-- postgresql.enabled: postgresql.enabled does not match: false
-- (root): Must validate "then" as "if" was valid
-- backendStore.postgres.enabled: backendStore.postgres.enabled does not match: false
-- (root): Must validate all the schemas (allOf)
+grep -n "postgresql.enabled" -n values.schema.json
+2276:      "description": "Ensures only one of backendStore.postgres.enabled, backendStore.mysql.enabled, postgresql.enabled can be true, or mysql.enabled can be true",
+grep -n "backendStore.*postgresql.*enabled" -n values.schema.json
+2276:      "description": "Ensures only one of backendStore.postgres.enabled, backendStore.mysql.enabled, postgresql.enabled can be true, or mysql.enabled can be true",
