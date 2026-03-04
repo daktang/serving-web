@@ -1,4 +1,7 @@
-grep -n "postgresql.enabled" -n values.schema.json
-2276:      "description": "Ensures only one of backendStore.postgres.enabled, backendStore.mysql.enabled, postgresql.enabled can be true, or mysql.enabled can be true",
-grep -n "backendStore.*postgresql.*enabled" -n values.schema.json
-2276:      "description": "Ensures only one of backendStore.postgres.enabled, backendStore.mysql.enabled, postgresql.enabled can be true, or mysql.enabled can be true",
+helm upgrade --install mlflow . -n mlflow --create-namespace
+Release "mlflow" does not exist. Installing it now.
+Error: values don't meet the specifications of the schema(s) in the following chart(s):
+mlflow:
+- autoscaling.metrics.0: Must validate one and only one schema (oneOf)
+- autoscaling.metrics.0.type: autoscaling.metrics.0.type does not match: "Resource"
+- autoscaling.metrics.0.type: autoscaling.metrics.0.type must be one of the following: "Resource", "Pods", "Object", "External"
