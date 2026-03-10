@@ -1,46 +1,10 @@
-------                                                                                                                                                                                                                                         
- > [builder 3/7] RUN corepack enable && corepack prepare pnpm@latest --activate:                                                                                                                                                               
-0.464 Internal Error: Error when performing the request to https://registry.npmjs.org/pnpm; for troubleshooting help, see https://github.com/nodejs/corepack#troubleshooting                                                                   
-0.464     at fetch (/usr/local/lib/node_modules/corepack/dist/lib/corepack.cjs:22089:11)                                                                                                                                                       
-0.464     at process.processTicksAndRejections (node:internal/process/task_queues:95:5)                                                                                                                                                        
-0.464     at async fetchAsJson (/usr/local/lib/node_modules/corepack/dist/lib/corepack.cjs:22103:20)                                                                                                                                           
-0.464     at async fetchAvailableTags (/usr/local/lib/node_modules/corepack/dist/lib/corepack.cjs:22042:20)
-0.464     at async fetchAvailableTags2 (/usr/local/lib/node_modules/corepack/dist/lib/corepack.cjs:22214:14)
-0.464     at async Engine.resolveDescriptor (/usr/local/lib/node_modules/corepack/dist/lib/corepack.cjs:23033:20)
-0.464     at async PrepareCommand.execute (/usr/local/lib/node_modules/corepack/dist/lib/corepack.cjs:23617:24)
-0.464     at async PrepareCommand.validateAndExecute (/usr/local/lib/node_modules/corepack/dist/lib/corepack.cjs:20278:22)
-0.464     at async _Cli.run (/usr/local/lib/node_modules/corepack/dist/lib/corepack.cjs:21215:18)
-0.464     at async Object.runMain (/usr/local/lib/node_modules/corepack/dist/lib/corepack.cjs:23704:19)
-------
-
- 1 warning found (use docker --debug to expand):
- - SecretsUsedInArgOrEnv: Do not use ARG or ENV instructions for sensitive data (ARG "VITE_LITELLM_API_KEY") (line 20)
-Dockerfile:7
---------------------
-   5 |     
-   6 |     # Install pnpm
-   7 | >>> RUN corepack enable && corepack prepare pnpm@latest --activate
-   8 |     
-   9 |     # Copy dependency files
---------------------
-ERROR: failed to build: failed to solve: process "/bin/sh -c corepack enable && corepack prepare pnpm@latest --activate" did not complete successfully: exit code: 1
-
-
-
----
 # ---- Stage 1: Build ----
 FROM domain.net/docker.io/library/node:20-alpine AS builder
 
 WORKDIR /app
 
-# Install pnpm
-RUN corepack enable && corepack prepare pnpm@latest --activate
-
-# Copy dependency files
-COPY package.json pnpm-lock.yaml ./
-
-# Install dependencies
-RUN pnpm install --frozen-lockfile
+COPY .npmrc /root/.npmrc
+COPY package.json package-lock.json ./
 
 # Copy source code
 COPY . .
@@ -48,9 +12,14 @@ COPY . .
 # Build args for environment variables
 ARG VITE_LITELLM_BASE_URL
 ARG VITE_LITELLM_API_KEY
+ARG VITE_PORT
 
-# Build the application
-RUN pnpm run build
+ENV VITE_LITELLM_BASE_URL=$VITE_LITELLM_BASE_URL
+ENV VITE_LITELLM_API_KEY=$VITE_LITELLM_API_KEY
+ENV VITE_PORT=$VITE_PORT
+
+RUN npm install
+RUN npm run build
 
 # ---- Stage 2: Serve ----
 FROM domain.net/docker.io/library/nginx:1.25-alpine AS production
