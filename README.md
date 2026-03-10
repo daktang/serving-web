@@ -1,3 +1,30 @@
-acl acl_test_wild_host hdr(host) -m reg -i ^[^\.]+\.test\.user\.domain\.net
-use_backend test_user_alpha_be if acl_test_wild_host
-!acl_test_wild_host   # 마지막 fallback 조건에 추가
+apiVersion: networking.istio.io/v1beta1
+kind: Gateway
+metadata:
+  name: mlflow-gateway
+spec:
+  selector:
+    istio: ingressgateway
+  servers:
+    - port:
+        number: 80
+        name: http
+        protocol: HTTP
+      hosts:
+        - mlflow.test.user.domain.net
+
+
+apiVersion: networking.istio.io/v1beta1
+kind: Gateway
+metadata:
+  name: mlflow-gateway
+spec:
+  selector:
+    istio: ingressgateway
+  servers:
+    - port:
+        number: 80
+        name: http
+        protocol: HTTP
+      hosts:
+        - mlflow.test.user.domain.net
