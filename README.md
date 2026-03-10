@@ -1,6 +1,6 @@
 npm install @opentelemetry/api @opentelemetry/sdk-trace-web @opentelemetry/context-zone @opentelemetry/instrumentation @opentelemetry/exporter-trace-otlp-http
 
-mport { trace } from "@opentelemetry/api";
+import { trace } from "@opentelemetry/api";
 import { WebTracerProvider, BatchSpanProcessor } from "@opentelemetry/sdk-trace-web";
 import { OTLPTraceExporter } from "@opentelemetry/exporter-trace-otlp-http";
 import { ZoneContextManager } from "@opentelemetry/context-zone";
