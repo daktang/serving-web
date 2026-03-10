@@ -1,31 +1,35 @@
-COPY <<'EOF' /etc/nginx/conf.d/default.conf
-server {
-    listen 8080;
-    server_name _;
-    root /usr/share/nginx/html;
-    index index.html;
+npm install @opentelemetry/api \
+@opentelemetry/sdk-trace-web \
+@opentelemetry/context-zone \
+@opentelemetry/exporter-trace-otlp-proto
 
-    location / {
-        try_files $uri $uri/ /index.html;
-    }
+import { trace } from "@opentelemetry/api";
+import { WebTracerProvider } from "@opentelemetry/sdk-trace-web";
+import { BatchSpanProcessor } from "@opentelemetry/sdk-trace-base";
+import { OTLPTraceExporter } from "@opentelemetry/exporter-trace-otlp-proto";
+import { ZoneContextManager } from "@opentelemetry/context-zone";
 
-    location = /v1/traces {
-        proxy_pass https://phoenix.test.user.domain.net/v1/traces;
-        proxy_http_version 1.1;
-        proxy_ssl_server_name on;
+const exporter = new OTLPTraceExporter({
+  url: "/v1/traces",
+});
 
-        proxy_set_header Host phoenix.test.user.domain.net;
-        proxy_set_header X-Real-IP $remote_addr;
-        proxy_set_header X-Forwarded-For $proxy_add_x_forwarded_for;
-        proxy_set_header X-Forwarded-Proto $scheme;
-    }
+const provider = new WebTracerProvider();
 
-    location ~* \.(js|css|png|jpg|jpeg|gif|ico|svg|woff|woff2|ttf|eot)$ {
-        expires 1y;
-        add_header Cache-Control "public, immutable";
-    }
+provider.addSpanProcessor(new BatchSpanProcessor(exporter));
 
-    gzip on;
-    gzip_types text/plain text/css application/json application/javascript text/xml application/xml application/xml+rss text/javascript;
-}
-EOF
+provider.register({
+  contextManager: new ZoneContextManager(),
+});
+
+console.log("OTEL browser tracing started");
+
+// 테스트용 span (앱 시작 시 1번)
+const tracer = trace.getTracer("llm-chat-service-browser");
+
+const span = tracer.startSpan("frontend-app-loaded");
+
+span.setAttribute("app.name", "llm-chat-service");
+span.setAttribute("span.type", "startup");
+span.setAttribute("env", "test");
+
+span.end();
