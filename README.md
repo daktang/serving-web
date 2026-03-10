@@ -1,27 +1,28 @@
 npm install @opentelemetry/api @opentelemetry/sdk-trace-web @opentelemetry/context-zone @opentelemetry/instrumentation @opentelemetry/exporter-trace-otlp-http
 
-import { trace } from "@opentelemetry/api";
-import { WebTracerProvider, BatchSpanProcessor } from "@opentelemetry/sdk-trace-web";
-import { OTLPTraceExporter } from "@opentelemetry/exporter-trace-otlp-http";
-import { ZoneContextManager } from "@opentelemetry/context-zone";
+/usr/share/nginx/html # cat index.html 
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <link rel="icon" type="image/x-icon" href="https://public-frontend-cos.metadl.com/mgx/img/favicon_atoms.ico" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>LLM Chat Service</title>
+    <meta name="description" content="LLM Chat Service - Chat with AI models via LiteLLM" />
+    <meta name="author" content="Atoms" />
 
-const exporter = new OTLPTraceExporter({
-  url: "http://phoenix.test.user.domain.net/v1/traces",
-});
+    <meta property="og:title" content="LLM Chat Service" />
+    <meta property="og:description" content="LLM Chat Service - Chat with AI models via LiteLLM" />
+    <meta property="og:type" content="website" />
+    <script type="module" crossorigin src="/assets/index-DNGBP3DE.js"></script>
+    <link rel="modulepreload" crossorigin href="/assets/ui-vendor-MzrPowtR.js">
+    <link rel="modulepreload" crossorigin href="/assets/utils-vendor-fUpwo6v8.js">
+    <link rel="modulepreload" crossorigin href="/assets/query-vendor-BqiNXUVO.js">
+    <link rel="modulepreload" crossorigin href="/assets/router-vendor-B1gDjdB0.js">
+    <link rel="stylesheet" crossorigin href="/assets/index-DnZstddW.css">
+  </head>
 
-const provider = new WebTracerProvider({
-  spanProcessors: [new BatchSpanProcessor(exporter)],
-});
-
-provider.register({
-  contextManager: new ZoneContextManager(),
-});
-
-console.log("OTEL browser tracing started");
-
-const tracer = trace.getTracer("llm-chat-service-browser");
-
-const span = tracer.startSpan("frontend-app-loaded");
-span.setAttribute("app.name", "llm-chat-service");
-span.setAttribute("test.type", "manual");
-span.end();
+  <body>
+    <div id="root"></div>
+  </body>
+</html>
