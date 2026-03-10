@@ -1,7 +1,7 @@
 npm install @opentelemetry/api @opentelemetry/sdk-trace-web @opentelemetry/context-zone @opentelemetry/instrumentation @opentelemetry/exporter-trace-otlp-http
 
-import { WebTracerProvider } from "@opentelemetry/sdk-trace-web";
-import { BatchSpanProcessor } from "@opentelemetry/sdk-trace-web";
+mport { trace } from "@opentelemetry/api";
+import { WebTracerProvider, BatchSpanProcessor } from "@opentelemetry/sdk-trace-web";
 import { OTLPTraceExporter } from "@opentelemetry/exporter-trace-otlp-http";
 import { ZoneContextManager } from "@opentelemetry/context-zone";
 
@@ -18,3 +18,10 @@ provider.register({
 });
 
 console.log("OTEL browser tracing started");
+
+const tracer = trace.getTracer("llm-chat-service-browser");
+
+const span = tracer.startSpan("frontend-app-loaded");
+span.setAttribute("app.name", "llm-chat-service");
+span.setAttribute("test.type", "manual");
+span.end();
