@@ -1,103 +1,109 @@
-from openinference.semconv.trace import SpanAttributes
+python quickstart.py 
+🔭 OpenTelemetry Tracing Details 🔭
+|  Phoenix Project: support-bot
+|  Span Processor: SimpleSpanProcessor
+|  Collector Endpoint: phoenix.test.user.domain.net:4317
+|  Transport: gRPC
+|  Transport Headers: {}
+|  
+|  Using a default SpanProcessor. `add_span_processor` will overwrite this default.
+|  
+|  ⚠️ WARNING: It is strongly advised to use a BatchSpanProcessor in production environments.
+|  
+|  `register` has set this TracerProvider as the global OpenTelemetry default.
+|  To disable this behavior, call `register` with `set_global_tracer_provider=False`.
 
-tools = [
-    {
-        "type": "function",
-        "function": {
-            "name": "lookupOrderStatus",
-            "description": "Look up the current status of a customer order by order ID",
-            "parameters": {
-                "type": "object",
-                "properties": {
-                    "orderId": {
-                        "type": "string",
-                        "description": "The order ID to look up (e.g., ORD-12345)",
-                    }
-                },
-                "required": ["orderId"],
-            },
-        },
-    }
-]
-
-
-# Helper function to execute tools automatically
-def execute_tool_call(tool_call, database):
-    """Execute a tool call and return the result."""
-    function_name = tool_call.function.name
-    function_args = json.loads(tool_call.function.arguments)
-
-    with tracer.start_as_current_span(
-        function_name,
-        attributes={
-            SpanAttributes.OPENINFERENCE_SPAN_KIND: "TOOL",
-            SpanAttributes.TOOL_NAME: function_name,
-            SpanAttributes.TOOL_PARAMETERS: json.dumps(function_args),
-            SpanAttributes.INPUT_VALUE: json.dumps(function_args),
-        },
-    ) as tool_span:
-        if function_name == "lookupOrderStatus":
-            order_id = function_args.get("orderId")
-            result = database.get(order_id, {"error": f"Order {order_id} not found"})
-        else:
-            result = {"error": f"Unknown tool: {function_name}"}
-
-        tool_span.set_attribute(SpanAttributes.OUTPUT_VALUE, json.dumps(result))
-        tool_span.set_status(trace.Status(trace.StatusCode.OK))
-        return result
-
-
-user_query = "What is the status of ORD-12345?"
-
-# Create a parent span to group all spans
-with tracer.start_as_current_span(
-    "tool-call-example",
-    attributes={
-        SpanAttributes.OPENINFERENCE_SPAN_KIND: "CHAIN",
-        SpanAttributes.INPUT_VALUE: user_query,
-    },
-) as parent_span:
-    messages = [
-        {
-            "role": "system",
-            "content": "You are a helpful customer support agent. When customers ask about order status, use the lookupOrderStatus tool to get the information.",
-        },
-        {"role": "user", "content": user_query},
-    ]
-
-    result = client.chat.completions.create(
-        model="gpt-4o-mini",
-        messages=messages,
-        tools=tools,
-        tool_choice="auto",
+Transient error StatusCode.UNAVAILABLE encountered while exporting traces to phoenix.test.user.domain.net:4317, retrying in 1.00s.
+Transient error StatusCode.UNAVAILABLE encountered while exporting traces to phoenix.test.user.domain.net:4317, retrying in 3.66s.
+Failed to export traces to phoenix.test.user.domain.net:4317, error code: StatusCode.UNAVAILABLE
+Traceback (most recent call last):
+  File "/data1/user/yun-workbench/aiplatform/kube-playground/phoenix-lab/.venv/lib/python3.14/site-packages/httpx/_transports/default.py", line 101, in map_httpcore_exceptions
+    yield
+  File "/data1/user/yun-workbench/aiplatform/kube-playground/phoenix-lab/.venv/lib/python3.14/site-packages/httpx/_transports/default.py", line 250, in handle_request
+    resp = self._pool.handle_request(req)
+  File "/data1/user/yun-workbench/aiplatform/kube-playground/phoenix-lab/.venv/lib/python3.14/site-packages/httpcore/_sync/connection_pool.py", line 256, in handle_request
+    raise exc from None
+  File "/data1/user/yun-workbench/aiplatform/kube-playground/phoenix-lab/.venv/lib/python3.14/site-packages/httpcore/_sync/connection_pool.py", line 236, in handle_request
+    response = connection.handle_request(
+        pool_request.request
     )
+  File "/data1/user/yun-workbench/aiplatform/kube-playground/phoenix-lab/.venv/lib/python3.14/site-packages/httpcore/_sync/connection.py", line 101, in handle_request
+    raise exc
+  File "/data1/user/yun-workbench/aiplatform/kube-playground/phoenix-lab/.venv/lib/python3.14/site-packages/httpcore/_sync/connection.py", line 78, in handle_request
+    stream = self._connect(request)
+  File "/data1/user/yun-workbench/aiplatform/kube-playground/phoenix-lab/.venv/lib/python3.14/site-packages/httpcore/_sync/connection.py", line 156, in _connect
+    stream = stream.start_tls(**kwargs)
+  File "/data1/user/yun-workbench/aiplatform/kube-playground/phoenix-lab/.venv/lib/python3.14/site-packages/httpcore/_backends/sync.py", line 154, in start_tls
+    with map_exceptions(exc_map):
+         ~~~~~~~~~~~~~~^^^^^^^^^
+  File "/data1/user/.local/share/uv/python/cpython-3.14.3-linux-x86_64-gnu/lib/python3.14/contextlib.py", line 162, in __exit__
+    self.gen.throw(value)
+    ~~~~~~~~~~~~~~^^^^^^^
+  File "/data1/user/yun-workbench/aiplatform/kube-playground/phoenix-lab/.venv/lib/python3.14/site-packages/httpcore/_exceptions.py", line 14, in map_exceptions
+    raise to_exc(exc) from exc
+httpcore.ConnectError: [SSL: CERTIFICATE_VERIFY_FAILED] certificate verify failed: unable to get local issuer certificate (_ssl.c:1081)
 
-    message = result.choices[0].message
-    messages.append(message)
+The above exception was the direct cause of the following exception:
 
-    # Execute tool if called, then get final response
-    if message.tool_calls:
-        for tool_call in message.tool_calls:
-            tool_result = execute_tool_call(tool_call, ORDER_DATABASE)
-            messages.append(
-                {
-                    "role": "tool",
-                    "tool_call_id": tool_call.id,
-                    "content": json.dumps(tool_result),
-                }
-            )
+Traceback (most recent call last):
+  File "/data1/user/yun-workbench/aiplatform/kube-playground/phoenix-lab/.venv/lib/python3.14/site-packages/openai/_base_client.py", line 1005, in request
+    response = self._client.send(
+        request,
+        stream=stream or self._should_stream_response_body(request=request),
+        **kwargs,
+    )
+  File "/data1/user/yun-workbench/aiplatform/kube-playground/phoenix-lab/.venv/lib/python3.14/site-packages/httpx/_client.py", line 914, in send
+    response = self._send_handling_auth(
+        request,
+    ...<2 lines>...
+        history=[],
+    )
+  File "/data1/user/yun-workbench/aiplatform/kube-playground/phoenix-lab/.venv/lib/python3.14/site-packages/httpx/_client.py", line 942, in _send_handling_auth
+    response = self._send_handling_redirects(
+        request,
+        follow_redirects=follow_redirects,
+        history=history,
+    )
+  File "/data1/user/yun-workbench/aiplatform/kube-playground/phoenix-lab/.venv/lib/python3.14/site-packages/httpx/_client.py", line 979, in _send_handling_redirects
+    response = self._send_single_request(request)
+  File "/data1/user/yun-workbench/aiplatform/kube-playground/phoenix-lab/.venv/lib/python3.14/site-packages/httpx/_client.py", line 1014, in _send_single_request
+    response = transport.handle_request(request)
+  File "/data1/user/yun-workbench/aiplatform/kube-playground/phoenix-lab/.venv/lib/python3.14/site-packages/httpx/_transports/default.py", line 249, in handle_request
+    with map_httpcore_exceptions():
+         ~~~~~~~~~~~~~~~~~~~~~~~^^
+  File "/data1/user/.local/share/uv/python/cpython-3.14.3-linux-x86_64-gnu/lib/python3.14/contextlib.py", line 162, in __exit__
+    self.gen.throw(value)
+    ~~~~~~~~~~~~~~^^^^^^^
+  File "/data1/user/yun-workbench/aiplatform/kube-playground/phoenix-lab/.venv/lib/python3.14/site-packages/httpx/_transports/default.py", line 118, in map_httpcore_exceptions
+    raise mapped_exc(message) from exc
+httpx.ConnectError: [SSL: CERTIFICATE_VERIFY_FAILED] certificate verify failed: unable to get local issuer certificate (_ssl.c:1081)
 
-        # Final LLM call with tool result
-        final_result = client.chat.completions.create(
-            model="gpt-4o-mini",
-            messages=messages,
-        )
-        final_response = final_result.choices[0].message.content
-    else:
-        final_response = message.content
+The above exception was the direct cause of the following exception:
 
-    parent_span.set_attribute(SpanAttributes.OUTPUT_VALUE, final_response)
-    parent_span.set_status(trace.Status(trace.StatusCode.OK))
-    print(f"Query: {user_query}")
-print(f"Response: {final_response}")
-print("✅ Check Phoenix UI to see the full trace")
+Traceback (most recent call last):
+  File "/data1/user/yun-workbench/aiplatform/kube-playground/phoenix-lab/quickstart.py", line 31, in <module>
+    result = client.chat.completions.create(
+        model="openai/gpt-oss:120b",
+    ...<3 lines>...
+        ],
+    )
+  File "/data1/user/yun-workbench/aiplatform/kube-playground/phoenix-lab/.venv/lib/python3.14/site-packages/openai/_utils/_utils.py", line 286, in wrapper
+    return func(*args, **kwargs)
+  File "/data1/user/yun-workbench/aiplatform/kube-playground/phoenix-lab/.venv/lib/python3.14/site-packages/openai/resources/chat/completions/completions.py", line 1211, in create
+    return self._post(
+           ~~~~~~~~~~^
+        "/chat/completions",
+        ^^^^^^^^^^^^^^^^^^^^
+    ...<47 lines>...
+        stream_cls=Stream[ChatCompletionChunk],
+        ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+    )
+    ^
+  File "/data1/user/yun-workbench/aiplatform/kube-playground/phoenix-lab/.venv/lib/python3.14/site-packages/openai/_base_client.py", line 1297, in post
+    return cast(ResponseT, self.request(cast_to, opts, stream=stream, stream_cls=stream_cls))
+                           ~~~~~~~~~~~~^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/data1/user/yun-workbench/aiplatform/kube-playground/phoenix-lab/.venv/lib/python3.14/site-packages/openinference/instrumentation/openai/_request.py", line 337, in __call__
+    response = wrapped(*args, **kwargs)
+  File "/data1/user/yun-workbench/aiplatform/kube-playground/phoenix-lab/.venv/lib/python3.14/site-packages/openai/_base_client.py", line 1037, in request
+    raise APIConnectionError(request=request) from err
+openai.APIConnectionError: Connection error.
