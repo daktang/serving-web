@@ -1,10 +1,14 @@
-# configure tracing
+import os
 
+os.environ["OPENAI_API_KEY"] = "your-openai-api-key"
+os.environ["PHOENIX_API_KEY"] = "your-phoenix-api-key"
+os.environ["PHOENIX_COLLECTOR_ENDPOINT"] = "your-phoenix-collector-endpoint"
+
+---
 from phoenix.otel import register
 
 tracer_provider = register(project_name="support-bot", auto_instrument=True)
-
-# tracing LLM call
+---
 import json
 import re
 import uuid
@@ -19,11 +23,7 @@ phoenix_client = Client()
 
 # Get a tracer for creating custom spans
 tracer = trace.get_tracer("support-agent")
-
 ---
-
-This is a simple LLM call with tracing. All OpenAI calls are automatically traced
-
 user_query = "Where is my order?"
 
 result = client.chat.completions.create(
@@ -34,3 +34,4 @@ result = client.chat.completions.create(
     ],
 )
 print("\n✅ This LLM call is automatically traced! Check Phoenix UI to see the span.")
+---
