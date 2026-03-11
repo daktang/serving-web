@@ -15,7 +15,7 @@ from openinference.semconv.trace import SpanAttributes
 
 
 # =========================
-# Environment
+# 환경 변수
 # =========================
 os.environ["OPENAI_API_KEY"] = "YOUR_INTERNAL_LLM_KEY"
 os.environ["OPENAI_BASE_URL"] = "https://openllm.domain.net/v1"
@@ -23,7 +23,7 @@ os.environ["PHOENIX_COLLECTOR_ENDPOINT"] = "https://phoenix.test.user.domain.net
 
 
 # =========================
-# Tracing Setup
+# Tracing 설정
 # =========================
 resource = Resource.create(
     {
@@ -59,7 +59,7 @@ tracer = trace.get_tracer("rag-example")
 
 
 # =========================
-# FAQ Mock Data
+# FAQ 목데이터
 # =========================
 class FAQEntry(TypedDict):
     id: int
@@ -72,62 +72,63 @@ class FAQEntry(TypedDict):
 FAQ_DATABASE: List[FAQEntry] = [
     {
         "id": 1,
-        "question": "How do I reset my password?",
-        "answer": "Go to Settings > Security > Reset Password. You'll receive an email with a reset link that expires in 24 hours.",
-        "category": "Account",
-        "keywords": ["password", "reset", "security", "login", "sign in"],
+        "question": "비밀번호는 어떻게 재설정하나요?",
+        "answer": "설정 > 보안 > 비밀번호 재설정 메뉴로 이동하세요. 비밀번호 재설정 링크가 포함된 이메일이 발송되며, 링크는 24시간 동안 유효합니다.",
+        "category": "계정",
+        "keywords": ["비밀번호", "재설정", "로그인", "보안", "패스워드"],
     },
     {
         "id": 2,
-        "question": "What's your refund policy?",
-        "answer": "We offer full refunds within 30 days of purchase for unused items. Contact support with your order number to initiate a refund.",
-        "category": "Billing",
-        "keywords": ["refund", "return", "money back", "cancel order", "policy"],
+        "question": "환불 정책은 어떻게 되나요?",
+        "answer": "사용하지 않은 상품에 한해 구매 후 30일 이내 전액 환불이 가능합니다. 주문 번호와 함께 고객지원팀에 문의해 주세요.",
+        "category": "결제",
+        "keywords": ["환불", "반품", "환불정책", "주문취소", "돈"],
     },
     {
         "id": 3,
-        "question": "How do I cancel my subscription?",
-        "answer": "Go to Account Settings > Subscription > Cancel Subscription. Your access continues until the end of the current billing period.",
-        "category": "Billing",
-        "keywords": ["subscription", "cancel", "plan", "membership", "billing"],
+        "question": "구독은 어떻게 해지하나요?",
+        "answer": "계정 설정 > 구독 > 구독 해지 메뉴에서 해지할 수 있습니다. 현재 결제 주기가 끝날 때까지는 서비스를 계속 이용할 수 있습니다.",
+        "category": "결제",
+        "keywords": ["구독", "해지", "플랜", "멤버십", "정기결제"],
     },
     {
         "id": 4,
-        "question": "What payment methods do you accept?",
-        "answer": "We accept Visa, Mastercard, American Express, PayPal, and Apple Pay. All transactions are securely processed.",
-        "category": "Billing",
-        "keywords": ["payment", "card", "paypal", "apple pay", "visa", "mastercard"],
+        "question": "어떤 결제 수단을 지원하나요?",
+        "answer": "Visa, Mastercard, American Express, PayPal, Apple Pay를 지원합니다. 모든 결제는 안전하게 처리됩니다.",
+        "category": "결제",
+        "keywords": ["결제", "카드", "페이팔", "애플페이", "비자", "마스터"],
     },
     {
         "id": 5,
-        "question": "How do I update my profile information?",
-        "answer": "Go to Account Settings > Profile. You can update your name, email, phone number, and address there.",
-        "category": "Account",
-        "keywords": ["profile", "update", "email", "phone", "address", "account info"],
+        "question": "프로필 정보는 어떻게 수정하나요?",
+        "answer": "계정 설정 > 프로필 메뉴에서 이름, 이메일, 전화번호, 주소를 수정할 수 있습니다.",
+        "category": "계정",
+        "keywords": ["프로필", "수정", "이메일", "전화번호", "주소", "계정정보"],
     },
 ]
 
 
 # =========================
-# Mock Retrieval Helpers
+# Mock Retrieval 보조 함수
 # =========================
 STOPWORDS = {
-    "how", "do", "i", "my", "is", "the", "a", "an", "to", "of", "what", "your",
-    "can", "you", "we", "our", "and", "for", "in", "on", "with", "it", "this",
+    "어떻게", "무엇", "뭐", "이", "그", "저", "은", "는", "이요", "가요", "을", "를",
+    "에", "의", "도", "좀", "수", "있나요", "되나요", "인가요", "해주세요", "알려줘",
+    "알려주세요", "합니다", "해요", "요", "가", "는요",
 }
 
 SYNONYMS = {
-    "password": ["password", "reset", "login", "signin", "sign", "security"],
-    "refund": ["refund", "return", "money", "policy", "cancel", "cancellation"],
-    "subscription": ["subscription", "plan", "membership", "cancel", "billing"],
-    "payment": ["payment", "pay", "card", "paypal", "visa", "mastercard", "amex", "apple"],
-    "profile": ["profile", "account", "update", "email", "address", "phone"],
+    "비밀번호": ["비밀번호", "패스워드", "로그인", "보안", "재설정"],
+    "환불": ["환불", "반품", "취소", "환불정책", "돈", "머니백"],
+    "구독": ["구독", "해지", "플랜", "멤버십", "정기결제"],
+    "결제": ["결제", "카드", "페이팔", "애플페이", "비자", "마스터", "아멕스"],
+    "프로필": ["프로필", "계정", "이메일", "전화번호", "주소", "수정"],
 }
 
 
 def tokenize(text: str) -> List[str]:
     text = text.lower()
-    tokens = re.findall(r"[a-z0-9]+", text)
+    tokens = re.findall(r"[가-힣a-z0-9]+", text)
     return [t for t in tokens if t not in STOPWORDS]
 
 
@@ -157,11 +158,11 @@ def score_faq(query: str, faq: FAQEntry) -> float:
 
     score = 0.0
 
-    # 1. 키워드 겹침
+    # 1. 키워드 겹침 점수
     overlap = expanded_query_tokens.intersection(faq_tokens)
     score += len(overlap) * 2.0
 
-    # 2. FAQ question 직접 매칭 가중치
+    # 2. FAQ 질문 직접 매칭 가중치
     question_lower = faq["question"].lower()
     for token in query_tokens:
         if token in question_lower:
@@ -194,7 +195,7 @@ def retrieve_relevant_faqs(query: str, top_k: int = 2) -> List[tuple[FAQEntry, f
 
 
 # =========================
-# RAG Example Runner
+# RAG 실행 함수
 # =========================
 def run_rag_example(user_query: str) -> None:
     with tracer.start_as_current_span(
@@ -229,7 +230,8 @@ def run_rag_example(user_query: str) -> None:
                             "category": faq["category"],
                             "score": float(score),
                             "keywords": faq.get("keywords") or [],
-                        }
+                        },
+                        ensure_ascii=False,
                     ),
                 )
             retrieval_span.set_status(trace.Status(trace.StatusCode.OK))
@@ -244,11 +246,11 @@ def run_rag_example(user_query: str) -> None:
                 {
                     "role": "system",
                     "content": (
-                        "You are a helpful customer support agent. "
-                        "Answer the user's question using ONLY the information provided in the context below. "
-                        "If the answer is not in the context, say so clearly. "
-                        "Be friendly and concise.\n\n"
-                        f"Context:\n{rag_context}"
+                        "너는 친절한 고객지원 상담원이다. "
+                        "반드시 아래 제공된 FAQ 문맥만 사용해서 답변해라. "
+                        "문맥에 없는 내용은 없다고 명확히 말해라. "
+                        "답변은 한국어로, 짧고 명확하게 작성해라.\n\n"
+                        f"문맥:\n{rag_context}"
                     ),
                 },
                 {"role": "user", "content": user_query},
@@ -259,22 +261,24 @@ def run_rag_example(user_query: str) -> None:
         parent_span.set_attribute(SpanAttributes.OUTPUT_VALUE, final_response)
         parent_span.set_status(trace.Status(trace.StatusCode.OK))
 
-        print(f"Query: {user_query}")
-        print("Retrieved FAQs:")
+        print(f"질문: {user_query}")
+        print("검색된 FAQ:")
         for faq, score in relevant_faqs:
             print(f"  - [{faq['id']}] {faq['question']} (score={score})")
-        print(f"Response: {final_response}")
+        print(f"응답: {final_response}")
 
 
 if __name__ == "__main__":
-    test_queries = [
-        "How do I reset my password?",
-        "Can I get a refund?",
-        "How can I cancel my plan?",
-        "What cards do you accept?",
-        "How do I change my email address?",
-    ]
+    # ==========================================
+    # 여기만 바꿔서 테스트하면 됨
+    # 사용자 질문 입력 위치
+    # ==========================================
+    user_query = "비밀번호를 재설정하려면 어떻게 해야 하나요?"
 
-    for q in test_queries:
-        print("\n" + "=" * 80)
-        run_rag_example(q)
+    # 예시:
+    # user_query = "환불은 어떻게 받나요?"
+    # user_query = "구독 해지는 어디서 하나요?"
+    # user_query = "어떤 결제 수단을 지원하나요?"
+    # user_query = "이메일 주소를 바꾸고 싶어요"
+
+    run_rag_example(user_query)
