@@ -1,25 +1,20 @@
-import { trace } from "@opentelemetry/api";
-import { WebTracerProvider, BatchSpanProcessor } from "@opentelemetry/sdk-trace-web";
-import { OTLPTraceExporter } from "@opentelemetry/exporter-trace-otlp-proto";
-import { ZoneContextManager } from "@opentelemetry/context-zone";
+uv pip install \
+arize-phoenix-otel \
+arize-phoenix-client \
+openai \
+openinference-instrumentation-openai
 
-const exporter = new OTLPTraceExporter({
-  url: "/v1/traces",
-});
+export OPENAI_API_KEY="internal-key"
+export OPENAI_BASE_URL="https://llmlite.internal/v1"
 
-const provider = new WebTracerProvider({
-  spanProcessors: [new BatchSpanProcessor(exporter)],
-});
+export PHOENIX_COLLECTOR_ENDPOINT="https://phoenix.test.user.domain.net"
+export PHOENIX_PROJECT_NAME="llm-tracing-lab"
 
-provider.register({
-  contextManager: new ZoneContextManager(),
-});
+from phoenix.otel import register
 
-console.log("OTEL browser tracing started");
+tracer_provider = register(
+    auto_instrument=True,
+    project_name="llm-tracing-lab",
+)
 
-const tracer = trace.getTracer("llm-chat-service-browser");
-
-const span = tracer.startSpan("frontend-app-loaded");
-span.setAttribute("app.name", "llm-chat-service");
-span.setAttribute("test.type", "manual");
-span.end();
+print("phoenix tracing ready")
