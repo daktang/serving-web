@@ -12,10 +12,8 @@ stringData:
       source:
         otel_trace_source:
           ssl: false
-          grpc:
-            port: 21890
-          http:
-            port: 21891
+          port: 21890
+          path: "/opentelemetry.proto.collector.trace.v1.TraceService/Export"
       sink:
         - pipeline:
             name: raw-trace-pipeline
