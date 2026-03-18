@@ -1,2 +1,1 @@
-Transient error StatusCode.UNAVAILABLE encountered while exporting traces to localhost:21890, retrying in 1.05s.
-Failed to export traces to localhost:21890, error code: StatusCode.UNAVAILABLE
+https://github.com/opensearch-project/OpenSearch-Dashboards/pull/11387
