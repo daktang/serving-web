@@ -26,6 +26,11 @@ stringData:
           name: entry-pipeline
       processor:
         - otel_traces: {}
+        - otel_trace_group:
+            hosts: ["https://opensearch-cluster-master:9200"]
+            username: "admin"
+            password: "OpenSearch@26"
+            insecure: true
       sink:
         - opensearch:
             hosts: ["https://opensearch-cluster-master:9200"]
