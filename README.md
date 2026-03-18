@@ -1,162 +1,60 @@
-k logs -n opensearch data-prepper-8546b5c4d6-74msc 
-Reading pipelines and data-prepper configuration files from Data Prepper home directory.
-/usr/bin/java
-Found openjdk version  of 17.0
-2026-03-18T02:57:11,958 [main] INFO  org.opensearch.dataprepper.DataPrepperArgumentConfiguration - Command line args: /usr/share/data-prepper/pipelines,/usr/share/data-prepper/config/data-prepper-config.yaml
-2026-03-18T02:57:12,123 [main] WARN  org.opensearch.dataprepper.pipeline.parser.rule.RuleEvaluator - Json Path not found for documentdb
-2026-03-18T02:57:12,124 [main] INFO  org.opensearch.dataprepper.pipeline.parser.transformer.DynamicConfigTransformer - No transformation needed
-2026-03-18T02:57:12,181 [main] WARN  org.springframework.context.support.AbstractApplicationContext - Exception encountered during context initialization - cancelling refresh attempt: org.springframework.beans.factory.UnsatisfiedDependencyException: Error creating bean with name 'dataPrepper' defined in URL [jar:file:/usr/share/data-prepper/lib/data-prepper-core-2.8.0.jar!/org/opensearch/dataprepper/DataPrepper.class]: Unsatisfied dependency expressed through constructor parameter 0; nested exception is org.springframework.beans.factory.UnsatisfiedDependencyException: Error creating bean with name 'pipelineParser' defined in org.opensearch.dataprepper.parser.config.PipelineParserConfiguration: Unsatisfied dependency expressed through method 'pipelineParser' parameter 1; nested exception is org.springframework.beans.factory.UnsatisfiedDependencyException: Error creating bean with name 'extensionsApplier' defined in URL [jar:file:/usr/share/data-prepper/lib/data-prepper-plugin-framework-2.8.0.jar!/org/opensearch/dataprepper/plugin/ExtensionsApplier.class]: Unsatisfied dependency expressed through constructor parameter 1; nested exception is org.springframework.beans.factory.UnsatisfiedDependencyException: Error creating bean with name 'extensionLoader' defined in URL [jar:file:/usr/share/data-prepper/lib/data-prepper-plugin-framework-2.8.0.jar!/org/opensearch/dataprepper/plugin/ExtensionLoader.class]: Unsatisfied dependency expressed through constructor parameter 0; nested exception is org.springframework.beans.factory.UnsatisfiedDependencyException: Error creating bean with name 'extensionPluginConfigurationConverter' defined in URL [jar:file:/usr/share/data-prepper/lib/data-prepper-plugin-framework-2.8.0.jar!/org/opensearch/dataprepper/plugin/ExtensionPluginConfigurationConverter.class]: Unsatisfied dependency expressed through constructor parameter 0; nested exception is org.springframework.beans.factory.UnsatisfiedDependencyException: Error creating bean with name 'extensionPluginConfigurationResolver' defined in URL [jar:file:/usr/share/data-prepper/lib/data-prepper-plugin-framework-2.8.0.jar!/org/opensearch/dataprepper/plugin/ExtensionPluginConfigurationResolver.class]: Unsatisfied dependency expressed through constructor parameter 0; nested exception is org.springframework.beans.factory.BeanCreationException: Error creating bean with name 'dataPrepperConfiguration' defined in org.opensearch.dataprepper.parser.config.DataPrepperAppConfiguration: Bean instantiation via factory method failed; nested exception is org.springframework.beans.BeanInstantiationException: Failed to instantiate [org.opensearch.dataprepper.parser.model.DataPrepperConfiguration]: Factory method 'dataPrepperConfiguration' threw exception; nested exception is java.lang.IllegalArgumentException: Invalid DataPrepper configuration file.
-Exception in thread "main" org.springframework.beans.factory.UnsatisfiedDependencyException: Error creating bean with name 'dataPrepper' defined in URL [jar:file:/usr/share/data-prepper/lib/data-prepper-core-2.8.0.jar!/org/opensearch/dataprepper/DataPrepper.class]: Unsatisfied dependency expressed through constructor parameter 0; nested exception is org.springframework.beans.factory.UnsatisfiedDependencyException: Error creating bean with name 'pipelineParser' defined in org.opensearch.dataprepper.parser.config.PipelineParserConfiguration: Unsatisfied dependency expressed through method 'pipelineParser' parameter 1; nested exception is org.springframework.beans.factory.UnsatisfiedDependencyException: Error creating bean with name 'extensionsApplier' defined in URL [jar:file:/usr/share/data-prepper/lib/data-prepper-plugin-framework-2.8.0.jar!/org/opensearch/dataprepper/plugin/ExtensionsApplier.class]: Unsatisfied dependency expressed through constructor parameter 1; nested exception is org.springframework.beans.factory.UnsatisfiedDependencyException: Error creating bean with name 'extensionLoader' defined in URL [jar:file:/usr/share/data-prepper/lib/data-prepper-plugin-framework-2.8.0.jar!/org/opensearch/dataprepper/plugin/ExtensionLoader.class]: Unsatisfied dependency expressed through constructor parameter 0; nested exception is org.springframework.beans.factory.UnsatisfiedDependencyException: Error creating bean with name 'extensionPluginConfigurationConverter' defined in URL [jar:file:/usr/share/data-prepper/lib/data-prepper-plugin-framework-2.8.0.jar!/org/opensearch/dataprepper/plugin/ExtensionPluginConfigurationConverter.class]: Unsatisfied dependency expressed through constructor parameter 0; nested exception is org.springframework.beans.factory.UnsatisfiedDependencyException: Error creating bean with name 'extensionPluginConfigurationResolver' defined in URL [jar:file:/usr/share/data-prepper/lib/data-prepper-plugin-framework-2.8.0.jar!/org/opensearch/dataprepper/plugin/ExtensionPluginConfigurationResolver.class]: Unsatisfied dependency expressed through constructor parameter 0; nested exception is org.springframework.beans.factory.BeanCreationException: Error creating bean with name 'dataPrepperConfiguration' defined in org.opensearch.dataprepper.parser.config.DataPrepperAppConfiguration: Bean instantiation via factory method failed; nested exception is org.springframework.beans.BeanInstantiationException: Failed to instantiate [org.opensearch.dataprepper.parser.model.DataPrepperConfiguration]: Factory method 'dataPrepperConfiguration' threw exception; nested exception is java.lang.IllegalArgumentException: Invalid DataPrepper configuration file.
-        at org.springframework.beans.factory.support.ConstructorResolver.createArgumentArray(ConstructorResolver.java:800)
-        at org.springframework.beans.factory.support.ConstructorResolver.autowireConstructor(ConstructorResolver.java:229)
-        at org.springframework.beans.factory.support.AbstractAutowireCapableBeanFactory.autowireConstructor(AbstractAutowireCapableBeanFactory.java:1372)
-        at org.springframework.beans.factory.support.AbstractAutowireCapableBeanFactory.createBeanInstance(AbstractAutowireCapableBeanFactory.java:1222)
-        at org.springframework.beans.factory.support.AbstractAutowireCapableBeanFactory.doCreateBean(AbstractAutowireCapableBeanFactory.java:582)
-        at org.springframework.beans.factory.support.AbstractAutowireCapableBeanFactory.createBean(AbstractAutowireCapableBeanFactory.java:542)
-        at org.springframework.beans.factory.support.AbstractBeanFactory.lambda$doGetBean$0(AbstractBeanFactory.java:335)
-        at org.springframework.beans.factory.support.DefaultSingletonBeanRegistry.getSingleton(DefaultSingletonBeanRegistry.java:234)
-        at org.springframework.beans.factory.support.AbstractBeanFactory.doGetBean(AbstractBeanFactory.java:333)
-        at org.springframework.beans.factory.support.AbstractBeanFactory.getBean(AbstractBeanFactory.java:208)
-        at org.springframework.beans.factory.support.DefaultListableBeanFactory.preInstantiateSingletons(DefaultListableBeanFactory.java:955)
-        at org.springframework.context.support.AbstractApplicationContext.finishBeanFactoryInitialization(AbstractApplicationContext.java:920)
-        at org.springframework.context.support.AbstractApplicationContext.refresh(AbstractApplicationContext.java:583)
-        at org.opensearch.dataprepper.AbstractContextManager.start(AbstractContextManager.java:59)
-        at org.opensearch.dataprepper.AbstractContextManager.getDataPrepperBean(AbstractContextManager.java:45)
-        at org.opensearch.dataprepper.DataPrepperExecute.main(DataPrepperExecute.java:39)
-Caused by: org.springframework.beans.factory.UnsatisfiedDependencyException: Error creating bean with name 'pipelineParser' defined in org.opensearch.dataprepper.parser.config.PipelineParserConfiguration: Unsatisfied dependency expressed through method 'pipelineParser' parameter 1; nested exception is org.springframework.beans.factory.UnsatisfiedDependencyException: Error creating bean with name 'extensionsApplier' defined in URL [jar:file:/usr/share/data-prepper/lib/data-prepper-plugin-framework-2.8.0.jar!/org/opensearch/dataprepper/plugin/ExtensionsApplier.class]: Unsatisfied dependency expressed through constructor parameter 1; nested exception is org.springframework.beans.factory.UnsatisfiedDependencyException: Error creating bean with name 'extensionLoader' defined in URL [jar:file:/usr/share/data-prepper/lib/data-prepper-plugin-framework-2.8.0.jar!/org/opensearch/dataprepper/plugin/ExtensionLoader.class]: Unsatisfied dependency expressed through constructor parameter 0; nested exception is org.springframework.beans.factory.UnsatisfiedDependencyException: Error creating bean with name 'extensionPluginConfigurationConverter' defined in URL [jar:file:/usr/share/data-prepper/lib/data-prepper-plugin-framework-2.8.0.jar!/org/opensearch/dataprepper/plugin/ExtensionPluginConfigurationConverter.class]: Unsatisfied dependency expressed through constructor parameter 0; nested exception is org.springframework.beans.factory.UnsatisfiedDependencyException: Error creating bean with name 'extensionPluginConfigurationResolver' defined in URL [jar:file:/usr/share/data-prepper/lib/data-prepper-plugin-framework-2.8.0.jar!/org/opensearch/dataprepper/plugin/ExtensionPluginConfigurationResolver.class]: Unsatisfied dependency expressed through constructor parameter 0; nested exception is org.springframework.beans.factory.BeanCreationException: Error creating bean with name 'dataPrepperConfiguration' defined in org.opensearch.dataprepper.parser.config.DataPrepperAppConfiguration: Bean instantiation via factory method failed; nested exception is org.springframework.beans.BeanInstantiationException: Failed to instantiate [org.opensearch.dataprepper.parser.model.DataPrepperConfiguration]: Factory method 'dataPrepperConfiguration' threw exception; nested exception is java.lang.IllegalArgumentException: Invalid DataPrepper configuration file.
-        at org.springframework.beans.factory.support.ConstructorResolver.createArgumentArray(ConstructorResolver.java:800)
-        at org.springframework.beans.factory.support.ConstructorResolver.instantiateUsingFactoryMethod(ConstructorResolver.java:541)
-        at org.springframework.beans.factory.support.AbstractAutowireCapableBeanFactory.instantiateUsingFactoryMethod(AbstractAutowireCapableBeanFactory.java:1352)
-        at org.springframework.beans.factory.support.AbstractAutowireCapableBeanFactory.createBeanInstance(AbstractAutowireCapableBeanFactory.java:1195)
-        at org.springframework.beans.factory.support.AbstractAutowireCapableBeanFactory.doCreateBean(AbstractAutowireCapableBeanFactory.java:582)
-        at org.springframework.beans.factory.support.AbstractAutowireCapableBeanFactory.createBean(AbstractAutowireCapableBeanFactory.java:542)
-        at org.springframework.beans.factory.support.AbstractBeanFactory.lambda$doGetBean$0(AbstractBeanFactory.java:335)
-        at org.springframework.beans.factory.support.DefaultSingletonBeanRegistry.getSingleton(DefaultSingletonBeanRegistry.java:234)
-        at org.springframework.beans.factory.support.AbstractBeanFactory.doGetBean(AbstractBeanFactory.java:333)
-        at org.springframework.beans.factory.support.AbstractBeanFactory.getBean(AbstractBeanFactory.java:208)
-        at org.springframework.beans.factory.config.DependencyDescriptor.resolveCandidate(DependencyDescriptor.java:276)
-        at org.springframework.beans.factory.support.DefaultListableBeanFactory.doResolveDependency(DefaultListableBeanFactory.java:1391)
-        at org.springframework.beans.factory.support.DefaultListableBeanFactory.resolveDependency(DefaultListableBeanFactory.java:1311)
-        at org.springframework.beans.factory.support.ConstructorResolver.resolveAutowiredArgument(ConstructorResolver.java:887)
-        at org.springframework.beans.factory.support.ConstructorResolver.createArgumentArray(ConstructorResolver.java:791)
-        ... 15 more
-Caused by: org.springframework.beans.factory.UnsatisfiedDependencyException: Error creating bean with name 'extensionsApplier' defined in URL [jar:file:/usr/share/data-prepper/lib/data-prepper-plugin-framework-2.8.0.jar!/org/opensearch/dataprepper/plugin/ExtensionsApplier.class]: Unsatisfied dependency expressed through constructor parameter 1; nested exception is org.springframework.beans.factory.UnsatisfiedDependencyException: Error creating bean with name 'extensionLoader' defined in URL [jar:file:/usr/share/data-prepper/lib/data-prepper-plugin-framework-2.8.0.jar!/org/opensearch/dataprepper/plugin/ExtensionLoader.class]: Unsatisfied dependency expressed through constructor parameter 0; nested exception is org.springframework.beans.factory.UnsatisfiedDependencyException: Error creating bean with name 'extensionPluginConfigurationConverter' defined in URL [jar:file:/usr/share/data-prepper/lib/data-prepper-plugin-framework-2.8.0.jar!/org/opensearch/dataprepper/plugin/ExtensionPluginConfigurationConverter.class]: Unsatisfied dependency expressed through constructor parameter 0; nested exception is org.springframework.beans.factory.UnsatisfiedDependencyException: Error creating bean with name 'extensionPluginConfigurationResolver' defined in URL [jar:file:/usr/share/data-prepper/lib/data-prepper-plugin-framework-2.8.0.jar!/org/opensearch/dataprepper/plugin/ExtensionPluginConfigurationResolver.class]: Unsatisfied dependency expressed through constructor parameter 0; nested exception is org.springframework.beans.factory.BeanCreationException: Error creating bean with name 'dataPrepperConfiguration' defined in org.opensearch.dataprepper.parser.config.DataPrepperAppConfiguration: Bean instantiation via factory method failed; nested exception is org.springframework.beans.BeanInstantiationException: Failed to instantiate [org.opensearch.dataprepper.parser.model.DataPrepperConfiguration]: Factory method 'dataPrepperConfiguration' threw exception; nested exception is java.lang.IllegalArgumentException: Invalid DataPrepper configuration file.
-        at org.springframework.beans.factory.support.ConstructorResolver.createArgumentArray(ConstructorResolver.java:800)
-        at org.springframework.beans.factory.support.ConstructorResolver.autowireConstructor(ConstructorResolver.java:229)
-        at org.springframework.beans.factory.support.AbstractAutowireCapableBeanFactory.autowireConstructor(AbstractAutowireCapableBeanFactory.java:1372)
-        at org.springframework.beans.factory.support.AbstractAutowireCapableBeanFactory.createBeanInstance(AbstractAutowireCapableBeanFactory.java:1222)
-        at org.springframework.beans.factory.support.AbstractAutowireCapableBeanFactory.doCreateBean(AbstractAutowireCapableBeanFactory.java:582)
-        at org.springframework.beans.factory.support.AbstractAutowireCapableBeanFactory.createBean(AbstractAutowireCapableBeanFactory.java:542)
-        at org.springframework.beans.factory.support.AbstractBeanFactory.lambda$doGetBean$0(AbstractBeanFactory.java:335)
-        at org.springframework.beans.factory.support.DefaultSingletonBeanRegistry.getSingleton(DefaultSingletonBeanRegistry.java:234)
-        at org.springframework.beans.factory.support.AbstractBeanFactory.doGetBean(AbstractBeanFactory.java:333)
-        at org.springframework.beans.factory.support.AbstractBeanFactory.getBean(AbstractBeanFactory.java:208)
-        at org.springframework.beans.factory.support.AbstractBeanFactory.doGetBean(AbstractBeanFactory.java:322)
-        at org.springframework.beans.factory.support.AbstractBeanFactory.getBean(AbstractBeanFactory.java:208)
-        at org.springframework.beans.factory.config.DependencyDescriptor.resolveCandidate(DependencyDescriptor.java:276)
-        at org.springframework.beans.factory.support.DefaultListableBeanFactory.doResolveDependency(DefaultListableBeanFactory.java:1391)
-        at org.springframework.beans.factory.support.DefaultListableBeanFactory.resolveDependency(DefaultListableBeanFactory.java:1311)
-        at org.springframework.beans.factory.support.ConstructorResolver.resolveAutowiredArgument(ConstructorResolver.java:887)
-        at org.springframework.beans.factory.support.ConstructorResolver.createArgumentArray(ConstructorResolver.java:791)
-        ... 29 more
-Caused by: org.springframework.beans.factory.UnsatisfiedDependencyException: Error creating bean with name 'extensionLoader' defined in URL [jar:file:/usr/share/data-prepper/lib/data-prepper-plugin-framework-2.8.0.jar!/org/opensearch/dataprepper/plugin/ExtensionLoader.class]: Unsatisfied dependency expressed through constructor parameter 0; nested exception is org.springframework.beans.factory.UnsatisfiedDependencyException: Error creating bean with name 'extensionPluginConfigurationConverter' defined in URL [jar:file:/usr/share/data-prepper/lib/data-prepper-plugin-framework-2.8.0.jar!/org/opensearch/dataprepper/plugin/ExtensionPluginConfigurationConverter.class]: Unsatisfied dependency expressed through constructor parameter 0; nested exception is org.springframework.beans.factory.UnsatisfiedDependencyException: Error creating bean with name 'extensionPluginConfigurationResolver' defined in URL [jar:file:/usr/share/data-prepper/lib/data-prepper-plugin-framework-2.8.0.jar!/org/opensearch/dataprepper/plugin/ExtensionPluginConfigurationResolver.class]: Unsatisfied dependency expressed through constructor parameter 0; nested exception is org.springframework.beans.factory.BeanCreationException: Error creating bean with name 'dataPrepperConfiguration' defined in org.opensearch.dataprepper.parser.config.DataPrepperAppConfiguration: Bean instantiation via factory method failed; nested exception is org.springframework.beans.BeanInstantiationException: Failed to instantiate [org.opensearch.dataprepper.parser.model.DataPrepperConfiguration]: Factory method 'dataPrepperConfiguration' threw exception; nested exception is java.lang.IllegalArgumentException: Invalid DataPrepper configuration file.
-        at org.springframework.beans.factory.support.ConstructorResolver.createArgumentArray(ConstructorResolver.java:800)
-        at org.springframework.beans.factory.support.ConstructorResolver.autowireConstructor(ConstructorResolver.java:229)
-        at org.springframework.beans.factory.support.AbstractAutowireCapableBeanFactory.autowireConstructor(AbstractAutowireCapableBeanFactory.java:1372)
-        at org.springframework.beans.factory.support.AbstractAutowireCapableBeanFactory.createBeanInstance(AbstractAutowireCapableBeanFactory.java:1222)
-        at org.springframework.beans.factory.support.AbstractAutowireCapableBeanFactory.doCreateBean(AbstractAutowireCapableBeanFactory.java:582)
-        at org.springframework.beans.factory.support.AbstractAutowireCapableBeanFactory.createBean(AbstractAutowireCapableBeanFactory.java:542)
-        at org.springframework.beans.factory.support.AbstractBeanFactory.lambda$doGetBean$0(AbstractBeanFactory.java:335)
-        at org.springframework.beans.factory.support.DefaultSingletonBeanRegistry.getSingleton(DefaultSingletonBeanRegistry.java:234)
-        at org.springframework.beans.factory.support.AbstractBeanFactory.doGetBean(AbstractBeanFactory.java:333)
-        at org.springframework.beans.factory.support.AbstractBeanFactory.getBean(AbstractBeanFactory.java:208)
-        at org.springframework.beans.factory.config.DependencyDescriptor.resolveCandidate(DependencyDescriptor.java:276)
-        at org.springframework.beans.factory.support.DefaultListableBeanFactory.doResolveDependency(DefaultListableBeanFactory.java:1391)
-        at org.springframework.beans.factory.support.DefaultListableBeanFactory.resolveDependency(DefaultListableBeanFactory.java:1311)
-        at org.springframework.beans.factory.support.ConstructorResolver.resolveAutowiredArgument(ConstructorResolver.java:887)
-        at org.springframework.beans.factory.support.ConstructorResolver.createArgumentArray(ConstructorResolver.java:791)
-        ... 45 more
-Caused by: org.springframework.beans.factory.UnsatisfiedDependencyException: Error creating bean with name 'extensionPluginConfigurationConverter' defined in URL [jar:file:/usr/share/data-prepper/lib/data-prepper-plugin-framework-2.8.0.jar!/org/opensearch/dataprepper/plugin/ExtensionPluginConfigurationConverter.class]: Unsatisfied dependency expressed through constructor parameter 0; nested exception is org.springframework.beans.factory.UnsatisfiedDependencyException: Error creating bean with name 'extensionPluginConfigurationResolver' defined in URL [jar:file:/usr/share/data-prepper/lib/data-prepper-plugin-framework-2.8.0.jar!/org/opensearch/dataprepper/plugin/ExtensionPluginConfigurationResolver.class]: Unsatisfied dependency expressed through constructor parameter 0; nested exception is org.springframework.beans.factory.BeanCreationException: Error creating bean with name 'dataPrepperConfiguration' defined in org.opensearch.dataprepper.parser.config.DataPrepperAppConfiguration: Bean instantiation via factory method failed; nested exception is org.springframework.beans.BeanInstantiationException: Failed to instantiate [org.opensearch.dataprepper.parser.model.DataPrepperConfiguration]: Factory method 'dataPrepperConfiguration' threw exception; nested exception is java.lang.IllegalArgumentException: Invalid DataPrepper configuration file.
-        at org.springframework.beans.factory.support.ConstructorResolver.createArgumentArray(ConstructorResolver.java:800)
-        at org.springframework.beans.factory.support.ConstructorResolver.autowireConstructor(ConstructorResolver.java:229)
-        at org.springframework.beans.factory.support.AbstractAutowireCapableBeanFactory.autowireConstructor(AbstractAutowireCapableBeanFactory.java:1372)
-        at org.springframework.beans.factory.support.AbstractAutowireCapableBeanFactory.createBeanInstance(AbstractAutowireCapableBeanFactory.java:1222)
-        at org.springframework.beans.factory.support.AbstractAutowireCapableBeanFactory.doCreateBean(AbstractAutowireCapableBeanFactory.java:582)
-        at org.springframework.beans.factory.support.AbstractAutowireCapableBeanFactory.createBean(AbstractAutowireCapableBeanFactory.java:542)
-        at org.springframework.beans.factory.support.AbstractBeanFactory.lambda$doGetBean$0(AbstractBeanFactory.java:335)
-        at org.springframework.beans.factory.support.DefaultSingletonBeanRegistry.getSingleton(DefaultSingletonBeanRegistry.java:234)
-        at org.springframework.beans.factory.support.AbstractBeanFactory.doGetBean(AbstractBeanFactory.java:333)
-        at org.springframework.beans.factory.support.AbstractBeanFactory.getBean(AbstractBeanFactory.java:208)
-        at org.springframework.beans.factory.config.DependencyDescriptor.resolveCandidate(DependencyDescriptor.java:276)
-        at org.springframework.beans.factory.support.DefaultListableBeanFactory.doResolveDependency(DefaultListableBeanFactory.java:1391)
-        at org.springframework.beans.factory.support.DefaultListableBeanFactory.resolveDependency(DefaultListableBeanFactory.java:1311)
-        at org.springframework.beans.factory.support.ConstructorResolver.resolveAutowiredArgument(ConstructorResolver.java:887)
-        at org.springframework.beans.factory.support.ConstructorResolver.createArgumentArray(ConstructorResolver.java:791)
-        ... 59 more
-Caused by: org.springframework.beans.factory.UnsatisfiedDependencyException: Error creating bean with name 'extensionPluginConfigurationResolver' defined in URL [jar:file:/usr/share/data-prepper/lib/data-prepper-plugin-framework-2.8.0.jar!/org/opensearch/dataprepper/plugin/ExtensionPluginConfigurationResolver.class]: Unsatisfied dependency expressed through constructor parameter 0; nested exception is org.springframework.beans.factory.BeanCreationException: Error creating bean with name 'dataPrepperConfiguration' defined in org.opensearch.dataprepper.parser.config.DataPrepperAppConfiguration: Bean instantiation via factory method failed; nested exception is org.springframework.beans.BeanInstantiationException: Failed to instantiate [org.opensearch.dataprepper.parser.model.DataPrepperConfiguration]: Factory method 'dataPrepperConfiguration' threw exception; nested exception is java.lang.IllegalArgumentException: Invalid DataPrepper configuration file.
-        at org.springframework.beans.factory.support.ConstructorResolver.createArgumentArray(ConstructorResolver.java:800)
-        at org.springframework.beans.factory.support.ConstructorResolver.autowireConstructor(ConstructorResolver.java:229)
-        at org.springframework.beans.factory.support.AbstractAutowireCapableBeanFactory.autowireConstructor(AbstractAutowireCapableBeanFactory.java:1372)
-        at org.springframework.beans.factory.support.AbstractAutowireCapableBeanFactory.createBeanInstance(AbstractAutowireCapableBeanFactory.java:1222)
-        at org.springframework.beans.factory.support.AbstractAutowireCapableBeanFactory.doCreateBean(AbstractAutowireCapableBeanFactory.java:582)
-        at org.springframework.beans.factory.support.AbstractAutowireCapableBeanFactory.createBean(AbstractAutowireCapableBeanFactory.java:542)
-        at org.springframework.beans.factory.support.AbstractBeanFactory.lambda$doGetBean$0(AbstractBeanFactory.java:335)
-        at org.springframework.beans.factory.support.DefaultSingletonBeanRegistry.getSingleton(DefaultSingletonBeanRegistry.java:234)
-        at org.springframework.beans.factory.support.AbstractBeanFactory.doGetBean(AbstractBeanFactory.java:333)
-        at org.springframework.beans.factory.support.AbstractBeanFactory.getBean(AbstractBeanFactory.java:208)
-        at org.springframework.beans.factory.config.DependencyDescriptor.resolveCandidate(DependencyDescriptor.java:276)
-        at org.springframework.beans.factory.support.DefaultListableBeanFactory.doResolveDependency(DefaultListableBeanFactory.java:1391)
-        at org.springframework.beans.factory.support.DefaultListableBeanFactory.resolveDependency(DefaultListableBeanFactory.java:1311)
-        at org.springframework.beans.factory.support.ConstructorResolver.resolveAutowiredArgument(ConstructorResolver.java:887)
-        at org.springframework.beans.factory.support.ConstructorResolver.createArgumentArray(ConstructorResolver.java:791)
-        ... 73 more
-Caused by: org.springframework.beans.factory.BeanCreationException: Error creating bean with name 'dataPrepperConfiguration' defined in org.opensearch.dataprepper.parser.config.DataPrepperAppConfiguration: Bean instantiation via factory method failed; nested exception is org.springframework.beans.BeanInstantiationException: Failed to instantiate [org.opensearch.dataprepper.parser.model.DataPrepperConfiguration]: Factory method 'dataPrepperConfiguration' threw exception; nested exception is java.lang.IllegalArgumentException: Invalid DataPrepper configuration file.
-        at org.springframework.beans.factory.support.ConstructorResolver.instantiate(ConstructorResolver.java:658)
-        at org.springframework.beans.factory.support.ConstructorResolver.instantiateUsingFactoryMethod(ConstructorResolver.java:638)
-        at org.springframework.beans.factory.support.AbstractAutowireCapableBeanFactory.instantiateUsingFactoryMethod(AbstractAutowireCapableBeanFactory.java:1352)
-        at org.springframework.beans.factory.support.AbstractAutowireCapableBeanFactory.createBeanInstance(AbstractAutowireCapableBeanFactory.java:1195)
-        at org.springframework.beans.factory.support.AbstractAutowireCapableBeanFactory.doCreateBean(AbstractAutowireCapableBeanFactory.java:582)
-        at org.springframework.beans.factory.support.AbstractAutowireCapableBeanFactory.createBean(AbstractAutowireCapableBeanFactory.java:542)
-        at org.springframework.beans.factory.support.AbstractBeanFactory.lambda$doGetBean$0(AbstractBeanFactory.java:335)
-        at org.springframework.beans.factory.support.DefaultSingletonBeanRegistry.getSingleton(DefaultSingletonBeanRegistry.java:234)
-        at org.springframework.beans.factory.support.AbstractBeanFactory.doGetBean(AbstractBeanFactory.java:333)
-        at org.springframework.beans.factory.support.AbstractBeanFactory.getBean(AbstractBeanFactory.java:208)
-        at org.springframework.beans.factory.config.DependencyDescriptor.resolveCandidate(DependencyDescriptor.java:276)
-        at org.springframework.beans.factory.support.DefaultListableBeanFactory.doResolveDependency(DefaultListableBeanFactory.java:1391)
-        at org.springframework.beans.factory.support.DefaultListableBeanFactory.resolveDependency(DefaultListableBeanFactory.java:1311)
-        at org.springframework.beans.factory.support.ConstructorResolver.resolveAutowiredArgument(ConstructorResolver.java:887)
-        at org.springframework.beans.factory.support.ConstructorResolver.createArgumentArray(ConstructorResolver.java:791)
-        ... 87 more
-Caused by: org.springframework.beans.BeanInstantiationException: Failed to instantiate [org.opensearch.dataprepper.parser.model.DataPrepperConfiguration]: Factory method 'dataPrepperConfiguration' threw exception; nested exception is java.lang.IllegalArgumentException: Invalid DataPrepper configuration file.
-        at org.springframework.beans.factory.support.SimpleInstantiationStrategy.instantiate(SimpleInstantiationStrategy.java:185)
-        at org.springframework.beans.factory.support.ConstructorResolver.instantiate(ConstructorResolver.java:653)
-        ... 101 more
-Caused by: java.lang.IllegalArgumentException: Invalid DataPrepper configuration file.
-        at org.opensearch.dataprepper.parser.config.DataPrepperAppConfiguration.dataPrepperConfiguration(DataPrepperAppConfiguration.java:40)
-        at org.opensearch.dataprepper.parser.config.DataPrepperAppConfiguration$$EnhancerBySpringCGLIB$$98d5c00f.CGLIB$dataPrepperConfiguration$0(<generated>)
-        at org.opensearch.dataprepper.parser.config.DataPrepperAppConfiguration$$EnhancerBySpringCGLIB$$98d5c00f$$FastClassBySpringCGLIB$$dbd0aca8.invoke(<generated>)
-        at org.springframework.cglib.proxy.MethodProxy.invokeSuper(MethodProxy.java:244)
-        at org.springframework.context.annotation.ConfigurationClassEnhancer$BeanMethodInterceptor.intercept(ConfigurationClassEnhancer.java:331)
-        at org.opensearch.dataprepper.parser.config.DataPrepperAppConfiguration$$EnhancerBySpringCGLIB$$98d5c00f.dataPrepperConfiguration(<generated>)
-        at java.base/jdk.internal.reflect.NativeMethodAccessorImpl.invoke0(Native Method)
-        at java.base/jdk.internal.reflect.NativeMethodAccessorImpl.invoke(NativeMethodAccessorImpl.java:77)
-        at java.base/jdk.internal.reflect.DelegatingMethodAccessorImpl.invoke(DelegatingMethodAccessorImpl.java:43)
-        at java.base/java.lang.reflect.Method.invoke(Method.java:568)
-        at org.springframework.beans.factory.support.SimpleInstantiationStrategy.instantiate(SimpleInstantiationStrategy.java:154)
-        ... 102 more
-Caused by: com.fasterxml.jackson.databind.exc.UnrecognizedPropertyException: Unrecognized field "discovery" (class org.opensearch.dataprepper.parser.model.DataPrepperConfiguration), not marked as ignorable (30 known properties: "processor_shutdown_timeout", "metric_tag_filters", "metric_tags", "key_store_file_path", "ssl", "metricTagFilters", "pipeline_shutdown", "extensions", "peer_forwarder", "pipelineExtensions", "privateKeyPassword", "pipelineShutdown", "key_store_password", "circuit_breakers", "keyStoreFilePath", "sink_shutdown_timeout", "circuitBreakerConfig", "peerForwarderConfiguration", "metricTags", "metricRegistryTypes", "private_key_password", "authentication", "processorShutdownTimeout", "server_port", "source_coordination", "metric_registries", "sinkShutdownTimeout", "serverPort", "sourceCoordinationConfig", "keyStorePassword"])
- at [Source: (File); line: 7, column: 1] (through reference chain: org.opensearch.dataprepper.parser.model.DataPrepperConfiguration["discovery"])
-        at com.fasterxml.jackson.databind.exc.UnrecognizedPropertyException.from(UnrecognizedPropertyException.java:61)
-        at com.fasterxml.jackson.databind.DeserializationContext.handleUnknownProperty(DeserializationContext.java:1153)
-        at com.fasterxml.jackson.databind.deser.std.StdDeserializer.handleUnknownProperty(StdDeserializer.java:2241)
-        at com.fasterxml.jackson.databind.deser.BeanDeserializerBase.handleUnknownProperty(BeanDeserializerBase.java:1793)
-        at com.fasterxml.jackson.databind.deser.BeanDeserializerBase.handleUnknownProperties(BeanDeserializerBase.java:1743)
-        at com.fasterxml.jackson.databind.deser.BeanDeserializer._deserializeUsingPropertyBased(BeanDeserializer.java:546)
-        at com.fasterxml.jackson.databind.deser.BeanDeserializerBase.deserializeFromObjectUsingNonDefault(BeanDeserializerBase.java:1493)
-        at com.fasterxml.jackson.databind.deser.BeanDeserializer.deserializeFromObject(BeanDeserializer.java:348)
-        at com.fasterxml.jackson.databind.deser.BeanDeserializer.deserialize(BeanDeserializer.java:185)
-        at com.fasterxml.jackson.databind.deser.DefaultDeserializationContext.readRootValue(DefaultDeserializationContext.java:342)
-        at com.fasterxml.jackson.databind.ObjectMapper._readMapAndClose(ObjectMapper.java:4905)
-        at com.fasterxml.jackson.databind.ObjectMapper.readValue(ObjectMapper.java:3713)
-        at org.opensearch.dataprepper.parser.config.DataPrepperAppConfiguration.dataPrepperConfiguration(DataPrepperAppConfiguration.java:38)
-        ... 112 more
+replicaCount: 1
+
+service:
+  ports:
+    - name: otlp-grpc
+      port: 4317
+      protocol: TCP
+      targetPort: 21890
+    - name: otlp-http
+      port: 4318
+      protocol: TCP
+      targetPort: 21891
+
+config:
+  data-prepper-config.yaml: |
+    ssl: false
+
+pipelineConfig:
+  config: |
+    entry-pipeline:
+      source:
+        otel_trace_source:
+          ssl: false
+          grpc:
+            port: 21890
+          http:
+            port: 21891
+      sink:
+        - pipeline:
+            name: raw-trace-pipeline
+        - pipeline:
+            name: service-map-pipeline
+
+    raw-trace-pipeline:
+      source:
+        pipeline:
+          name: entry-pipeline
+      processor:
+        - otel_traces:
+      sink:
+        - opensearch:
+            hosts: ["https://opensearch-cluster-master:9200"]
+            username: "admin"
+            password: "YOUR_PASSWORD"
+            insecure: true
+            index_type: trace-analytics-raw
+
+    service-map-pipeline:
+      source:
+        pipeline:
+          name: entry-pipeline
+      processor:
+        - service_map_stateful:
+      sink:
+        - opensearch:
+            hosts: ["https://opensearch-cluster-master:9200"]
+            username: "admin"
+            password: "YOUR_PASSWORD"
+            insecure: true
+            index_type: trace-analytics-service-map
