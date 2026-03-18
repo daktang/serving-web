@@ -1,3 +1,15 @@
-Handling connection for 21891
-E0318 12:11:52.325538 3042931 portforward.go:409] an error occurred forwarding 21891 -> 21891: error forwarding port 21891 to pod 4a1c64ac35c48fb6ca9da5591e2d6f7628b066291cba692b4f13bf42657372c7, uid : failed to execute portforward in network namespace "/var/run/netns/cni-50872b8f-9d84-3742-32a9-3fc6c123af48": failed to connect to localhost:21891 inside namespace "4a1c64ac35c48fb6ca9da5591e2d6f7628b066291cba692b4f13bf42657372c7", IPv4: dial tcp4 127.0.0.1:21891: connect: connection refused IPv6 dial tcp6 [::1]:21891: connect: connection refused 
-error: lost connection to pod
+k exec -n opensearch deploy/data-prepper -- cat /usr/share/data-prepper/pipelines/pipelines.yaml
+simple-sample-pipeline:
+  workers: 2      # the number of workers
+  delay: 5000     # in milliseconds, how long workers wait between read attempts
+  source:
+    random: {}
+  buffer:
+    bounded_blocking:
+      buffer_size: 1024     # max number of records the buffer accepts
+      batch_size: 256       # max number of records the buffer drains after each read
+  processor:
+    - string_converter:
+        upper_case: true
+  sink:
+    - stdout: {}
