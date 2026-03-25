@@ -1,5 +1,48 @@
-    A
-  B I H
-C J M L G
-  D K F
-    E
+N = int(input())
+
+size = 2 * N - 1  # 마름모에 대비해 전체 사각형의 size
+mid = N - 1  # 마름모의 중점
+
+A = [[' '] * size for _ in range(size)]
+
+# 좌하, 우하, 우상, 좌상
+dr = [1, 1, -1, -1]
+dc = [-1, 1, 1, -1]
+
+r, c = 0, mid
+direction = 0
+ch = ord('A')
+
+total = N * N + (N - 1) * (N - 1)
+
+for _ in range(total):
+    A[r][c] = chr(ch)
+    ch += 1
+
+    if ch > ord('Z'):
+        ch = ord('A')
+
+    nr = r + dr[direction]
+    nc = c + dc[direction]
+
+    if not (0 <= nr < size and 0 <= nc < size) or abs(nr - mid) + abs(nc - mid) > N - 1 or A[nr][nc] != ' ':
+        # 방향 바꿔서 재 조정
+        direction = (direction + 1) % 4
+
+        nr = r + dr[direction]
+        nc = c + dr[direction]
+
+    r, c = nr, nc
+
+for row in A:
+    print("".join(row).rstrip())
+
+
+4
+   A
+  B X
+ C   Y
+D   J V
+ E I
+  H
+   G
