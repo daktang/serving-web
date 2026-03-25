@@ -1,38 +1,11 @@
-
-N = int(input())
-
-size = 2 * N - 1
-mid = N - 1
-
-A = [[' '] * size for _ in range(size)]
-
-# ↙, ↘, ↗, ↖
-dr = [1, 1, -1, -1]
-dc = [-1, 1, 1, -1]
-
-r, c = 0, mid
-ch = ord('A')
-
-A[r][c] = chr(ch)
-ch += 1
-if ch > ord('Z'):
-    ch = ord('A')
-
-for move in range(N - 1, 0, -1):
-    for d in range(4):
-        for _ in range(move):
-            r += dr[d]
-            c += dc[d]
-            A[r][c] = chr(ch)
-            ch += 1
-            if ch > ord('Z'):
-                ch = ord('A')
-
-    r += 1
-    A[r][c] = chr(ch)
-    ch += 1
-    if ch > ord('Z'):
-        ch = ord('A')
-
-for row in A:
-    print(' '.join(row).rstrip())
+python 문자마름모1.py 
+5
+        Q
+      B D P
+    C S M C O
+  D T F R L B N
+E U G O S Q K A M
+  F V H P J Z L
+    G W I Y K
+      H X J
+        I
