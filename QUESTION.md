@@ -1,45 +1,62 @@
-board = [list(map(int, input().split())) for _ in range(19)]
+"""
+빙고 게임에서 정 가운데가 아닌 경우 행/열만 확인하면 된다.
 
-# 우, 하, 우하, 우상
-dr = [0, 1, 1, -1]
-dc = [1, 0, 1, 1]
+"""
 
-for r in range(19):
-    for c in range(19):
-        if board[r][c] == 0:
-            continue
+board = [list(map(int, input().split())) for _ in range(5)]
+arr = [list(map(int, input().split())) for _ in range(5)]
 
-        color = board[r][c]
+call = []
+for r in range(5):
+    for c in range(5):
+        call.append(arr[r][c])
 
-        for d in range(4):
-            pr = r - dr[d]
-            pc = c - dc[d]
+bingo_count = 0
+for i in range(len(call)):
 
-            # 이전 칸이 같은 색이면 시작점이 아니므로 통과를 시켜 버린다.
-            if 0 <= pr < 19 and 0 <= pc < 19 and board[pr][pc] == color:
-                continue
+    # 호출 된 것 -1로 체크
+    check = False
+    for r in range(5):
+        for c in range(5):
+            if board[r][c] == call[i]:
+                board[r][c] = -1
+                check = True
+                break
+        if check:
+            break
 
-            # 시작점인 경우 메인 로직 시작
-            count = 1
-            nr, nc = r, c   # 누적을 위함.
+    # 빙고에 대해 count
+    # row check
+    row_bingo_check = 0
+    for i in range(5):
+        if board[i][c] == -1:
+            row_bingo_check += 1
 
-            for _ in range(4):
-                nr += dr[d]
-                nc += dc[d]
+    if row_bingo_check == 5:
+        bingo_count += 1
 
-                if 0 <= nr < 19 and 0 <= nc < 19 and board[nr][nc] == color:
-                    count += 1
-                else:
-                    break
+    col_bingo_check = 0
+    for i in range(5):
+        if board[r][c] == -1:
+            col_bingo_check += 1
 
-            if count == 5:
-                # 6목을 체크하기 위함.
-                nr += dr[d]
-                nc += dc[d]
+    if col_bingo_check == 5:
+        bingo_count += 1
 
-                if 0 <= nr < 19 and 0 <= nc < 19 and board[nr][nc] == color:
-                    continue  # 넘어가버린다.
+    if r == 2 and c == 2:
+        cross_bingo_check = 0
+        cross_counter_bingo_chekc = 0
+        for i in range(5):
+            if board[i][i] == -1:
+                cross_bingo_check += 1
+            if board[i][5 - 1 - i] == -1:
+                cross_counter_bingo_chekc += 1
 
-                print(color)
-                print(r + 1, c + 1)
-                exit()
+        if cross_bingo_check == 5:
+            bingo_count += 1
+
+        if cross_counter_bingo_chekc == 5:
+            bingo_count += 1
+
+    if bingo_count >= 3:
+        print(call[i])
