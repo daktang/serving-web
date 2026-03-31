@@ -1,47 +1,27 @@
 N = int(input())
-A = [list(map(int, input().split())) for _ in range(N)]
-B = [list(map(int, input().split())) for _ in range(N)]
 
+board = [[0] * 100 for _ in range(100)]
 
-def rotate(board):
-    result = [[0] * (i + 1) for i in range(N)]
+for _ in range(N):
+    x, y = map(int, input().split())
 
-    for r in range(N):
-        for c in range(r + 1):
-            nr = N - 1 - c
-            nc = r - c
-            result[nr][nc] = board[r][c]
+    for r in range(y, y + 10):
+        for c in range(x, x + 10):
+            board[r][c] = 1
 
-    return result
+dr = [-1, 1, 0, 0]
+dc = [0, 0, -1, 1]
+answer = 0
 
-
-def reflect(board):
-    result = [[0] * (i + 1) for i in range(N)]
-
-    for r in range(N):
-        for c in range(r + 1):
-            result[r][r - c] = board[r][c]
-
-    return result
-
-
-def diff(board1, board2):
-    cnt = 0
-
-    for r in range(N):
-        for c in range(r + 1):
-            if board1[r][c] != board2[r][c]:
-                cnt += 1
-
-    return cnt
-
-
-answer = float('inf')
-cur = A
-
-for _ in range(3):
-    answer = min(answer, diff(cur, B))
-    answer = min(answer, diff(reflect(cur), B))
-    cur = rotate(cur)
-
+for r in range(100):
+    for c in range(100):
+        if board[r][c] == 1:
+            for i in range(4):
+                nr = r + dr[i]
+                nc = c + dc[i]
+                # 배열의 밖인 경우? = 무조건 둘레다
+                if nr < 0 or nr >= 100 or nc < 0 or nc >= 100:
+                    answer += 1
+                elif board[r][c] == 0:
+                    answer += 1
 print(answer)
