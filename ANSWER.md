@@ -27,30 +27,30 @@ tile_move = {
     0: {
         2: 1,
         1: 2
-    }
+    },
     # 1: 왼쪽 - 아래
     1: {
         3: 1,
         1: 3
-    }
+    },
 
     # 2: 위 - 오른쪽
     2: {
         0: 2,
         2: 0
-    }
+    },
 
     # 3: 위 - 왼쪽
     3: {
         0: 3,
         3: 0
-    }
+    },
 
     # 4: 위 - 아래
     4: {
         0: 1,
         1: 0
-    }
+    },
 
     # 5: 왼쪽 - 오른쪽
     5: {
@@ -72,7 +72,7 @@ for r in range(N):
         one_cell_in_directions_list = []
         for in_direction in range(4):
             used_list = []
-            for used in rnage(K + 1):
+            for used in range(K + 1):
                 used_list.append(INF)
             one_cell_in_directions_list.append(used_list)
         one_row_list.append(one_cell_in_directions_list)
@@ -92,7 +92,7 @@ while queue:
     original_tile = board[r][c]
 
     for new_tile in range(6):
-        # 다음 칸 설정
+        # 현재 칸의 타일 그대로 둘지/교체할지 결정
         if new_tile == original_tile:
             extra = 0
         else:
@@ -103,7 +103,7 @@ while queue:
         # 다음 칸에 대한 제약 조건 검증
         if next_used > K:
             continue
-        if in_derection not in tile_move[new_tile]:
+        if in_direction not in tile_move[new_tile]:
             continue
 
         out_direction = tile_move[new_tile][in_direction]
@@ -114,7 +114,7 @@ while queue:
         next_len = cur_len + 1
 
         # 경로 길이에 대한 정답 계산 및 교체
-        if nr < 0 or nr >= N or nc < 0 nc >= M:
+        if nr < 0 or nr >= N or nc < 0 or nc >= N:
             if r == N - 1 and c == N - 1 and out_direction == 2:
                 if next_used == K:
                     answer = min(answer, next_len)
@@ -122,8 +122,8 @@ while queue:
 
         next_in_direction = opposite(out_direction)
 
-        if dist[r][c][next_in_direction][next_used] > next_len:
-            dist[r][c][next_in_direction][next_used] = next_len
+        if dist[nr][nc][next_in_direction][next_used] > next_len:
+            dist[nr][nc][next_in_direction][next_used] = next_len
             queue.append((nr, nc, next_in_direction, next_used))
 
 if answer == INF:
