@@ -1,63 +1,132 @@
-# 14502
-
-# 1 벽 / 0 안전지대 / 2 바이러스
-# 벽 3개 세워서 안전지대 최대?
-# 바이러스에서 출발하는 BFS(다중으로도 돌아감) + 최대 64C3이므로 BF해도 과하지 않음.
-
-from itertools import combinations
 from collections import deque
+import sys
 
-N, M = map(int, input().split())
+input = sys.stdin.readline
 
-B = [[] for _ in range(N)]
-for i in range(N):
-    B[i] = list(map(int, input().split()))
+# 위, 아래, 우측, 왼쪽
+dr = [-1, 1, 0, 0]
+dc = [0, 0, 1, -1]
 
-
-cells = [(i, j) for i in range(N) for j in range(M) if B[i][j] == 0]
-max_safe = 0
+# 반대 방향 전환
 
 
-for combination in combinations(cells, 3):
-    for row, col in combination:
-        B[row][col] = 1
+def opposite(d):
+    if d == 0:
+        return 1
+    if d == 1:
+        return 0
+    if d == 2:
+        return 3
+    if d == 3:
+        return 2
 
-    # BFS - 방문이 되었는지를 체크하는게 핵심(안전지역이면 방문 불가니까)
-    visit = [[False] * N for _ in range(M)]
-    queue = deque()
-    dr = [-1, 1, 0, 0]
-    dc = [0, 0, -1, 0]
 
-    for i in range(N):
-        for j in range(M):
-            if B[i][j] == 2:
-                queue.append((i, j))
-                visit[i][j] = True
+# tile_move 방향 정의
+tile_move = {
+    # 0번 입력: 하 - 우
+    0: {
+        2: 1,
+        1: 2
+    },
+    # 1: 왼쪽 - 아래
+    1: {
+        3: 1,
+        1: 3
+    },
 
-    while len(queue) != 0:
-        nr, nc = queue.popleft()
+    # 2: 위 - 오른쪽
+    2: {
+        0: 2,
+        2: 0
+    },
 
-        for i in range(4):
-            nr = nr + dr[i]
-            nc = nc + dc[i]
+    # 3: 위 - 왼쪽
+    3: {
+        0: 3,
+        3: 0
+    },
 
-        if nr < 0 or N <= nr or nc < 0 or M <= nc:
+    # 4: 위 - 아래
+    4: {
+        0: 1,
+        1: 0
+    },
+
+    # 5: 왼쪽 - 오른쪽
+    5: {
+        3: 2,
+        2: 3
+    }
+}
+
+INF = 10 ** 18
+
+N, K = map(int, input().split())
+board = [list(map(int, input().split())) for _ in range(N)]
+
+# dist[r][c][in_direction][used] : used 타일 교체했을 때의 최소 경로 길이
+dist = []
+for r in range(N):
+    one_row_list = []
+    for c in range(N):
+        one_cell_in_directions_list = []
+        for in_direction in range(4):
+            used_list = []
+            for used in range(K + 1):
+                used_list.append(INF)
+            one_cell_in_directions_list.append(used_list)
+        one_row_list.append(one_cell_in_directions_list)
+    dist.append(one_row_list)
+
+queue = deque()
+
+dist[0][0][3][0] = 0
+queue.append((0, 0, 3, 0))
+
+answer = INF
+
+while queue:
+    r, c, in_direction, used = queue.popleft()
+    cur_len = dist[r][c][in_direction][used]
+
+    original_tile = board[r][c]
+
+    for new_tile in range(6):
+        # 현재 칸의 타일 그대로 둘지/교체할지 결정
+        if new_tile == original_tile:
+            extra = 0
+        else:
+            extra = 1
+
+        next_used = used + extra
+
+        # 다음 칸에 대한 제약 조건 검증
+        if next_used > K:
             continue
-        if B[nr][nc] == 1:
+        if in_direction not in tile_move[new_tile]:
             continue
-        if not visit[nr][nc]:
-            queue.append((nr, nc))
-            visit[nr][nc] = True
 
-    safe = 0
-    for i in range(N):
-        for j in range(M):
-            if not visit[i][j] and B[i][j] == 0:
-                safe += 1
+        out_direction = tile_move[new_tile][in_direction]
 
-    max_safe = max(safe, max_safe)
+        nr = r + dr[out_direction]
+        nc = c + dc[out_direction]
 
-    for row, col in combination:
-        B[row][col] = 0
+        next_len = cur_len + 1
 
-print(max_safe)
+        # 경로 길이에 대한 정답 계산 및 교체
+        if nr < 0 or nr >= N or nc < 0 or nc >= N:
+            if r == N - 1 and c == N - 1 and out_direction == 2:
+                if next_used == K:
+                    answer = min(answer, next_len)
+            continue
+
+        next_in_direction = opposite(out_direction)
+
+        if dist[nr][nc][next_in_direction][next_used] > next_len:
+            dist[nr][nc][next_in_direction][next_used] = next_len
+            queue.append((nr, nc, next_in_direction, next_used))
+
+if answer == INF:
+    print(-1)
+else:
+    print(answer)
